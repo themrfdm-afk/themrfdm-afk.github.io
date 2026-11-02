@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Fisher Madsen</title>
+<meta name="description" content="Fisher Madsen is a sports journalist, photographer and podcaster studying journalism at the University of Nebraska–Lincoln.">
+<style>
+  :root {
+    --bg: #faf8f5;
+    --surface: #ffffff;
+    --text: #1c1a19;
+    --muted: #6b6560;
+    --line: #e7e2dc;
+    --accent: #c8102e;
+    --accent-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141211;
+      --surface: #1e1b1a;
+      --text: #f3efeb;
+      --muted: #a39b94;
+      --line: #322d2a;
+      --accent: #ff4d5e;
+      --accent-ink: #141211;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.15; margin: 0; }
+  a { color: var(--accent); }
+
+  header.hero { padding: 72px 0 48px; border-bottom: 1px solid var(--line); }
+  .kicker {
+    text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700;
+    color: var(--accent); margin-bottom: 14px;
+  }
+  h1 { font-size: clamp(40px, 8vw, 64px); letter-spacing: -.02em; }
+  .lede { font-size: 21px; margin: 20px 0 28px; max-width: 34em; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    display: inline-block; padding: 10px 18px; border-radius: 999px; text-decoration: none;
+    font-weight: 600; font-size: 15px; border: 1.5px solid var(--accent);
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.ghost { color: var(--accent); }
+
+  section { padding: 48px 0 0; }
+  h2 { font-size: 28px; margin-bottom: 18px; }
+  p { margin: 0 0 16px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .stat b { display: block; font: 700 30px Georgia, serif; color: var(--accent); }
+  .stat span { font-size: 14px; color: var(--muted); }
+
+  .timeline { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
+  .timeline li { position: relative; padding: 0 0 26px 22px; }
+  .timeline li::before {
+    content: ""; position: absolute; left: -7px; top: 8px; width: 12px; height: 12px;
+    background: var(--accent); border-radius: 50%; border: 2px solid var(--bg);
+  }
+  .timeline h3 { font-size: 20px; }
+  .meta { font-size: 14px; color: var(--muted); margin: 2px 0 6px; }
+  .timeline p { margin: 0; }
+
+  ul.honors { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ul.honors li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+  ul.honors small { display: block; color: var(--muted); font-size: 13px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; margin: 0; }
+  .chips li { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 15px; }
+
+  footer { margin-top: 64px; padding: 28px 0 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  @media (max-width: 480px) { header.hero { padding-top: 48px; } .lede { font-size: 19px; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Journalist · Photographer · Podcaster</div>
+    <h1>Hi, I'm Fisher Madsen.</h1>
+    <p class="lede">I tell sports stories with words, photos and a microphone. I'm a journalism student at the University of Nebraska–Lincoln, and I've covered everything from Friday night high school games in Gretna to the World University Games in Germany.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://www.linkedin.com/in/fisher-madsen-2390692a5/">Connect on LinkedIn</a>
+      <a class="btn ghost" href="#work">See my work</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="story">
+    <h2>The short version</h2>
+    <p>I started writing about sports at 16 for my hometown paper, and I haven't really stopped. Since then I've picked up a camera, a podcast mic and a deadline-friendly sense of calm, and I now cover Nebraska athletics as a photographer and reporter for <em>The Daily Nebraskan</em>.</p>
+    <p>What I love most is the people behind the scoreboard: the coaches, the walk-ons, the players nobody's writing about yet. Whether it's a feature, a photo or a postgame interview, I want you to feel like you were there.</p>
+    <div class="stats">
+      <div class="stat"><b>150+</b><span>articles written covering local high school sports</span></div>
+      <div class="stat"><b>2025</b><span>FISU Young Reporter at the World University Games</span></div>
+      <div class="stat"><b>May 2027</b><span>expected graduation, B.J. in Journalism</span></div>
+    </div>
+  </section>
+
+  <section id="work">
+    <h2>What I've been up to</h2>
+    <ul class="timeline">
+      <li>
+        <h3>Photographer &amp; Sports Reporter</h3>
+        <div class="meta">The Daily Nebraskan · Sept 2024 – Present</div>
+        <p>Shooting and writing for the sports section, from feature stories to game coverage, and uploading photos during game breaks so readers see the action while it's still happening.</p>
+      </li>
+      <li>
+        <h3>Young Reporter</h3>
+        <div class="meta">International University Sports Federation (FISU) · July 2025</div>
+        <p>Selected from an international pool to cover the 2025 World University Games in Germany: feature stories on tight deadlines, postgame broadcast interviews for fisu.tv and social content for FISU's accounts.</p>
+      </li>
+      <li>
+        <h3>Contributor</h3>
+        <div class="meta">Nebraska Soccer Talk · Feb 2025 – Present</div>
+        <p>Hosting and editing podcasts, writing about Nebraska soccer, interviewing coaches and players, and live-posting from matches.</p>
+      </li>
+      <li>
+        <h3>Student Contributor &amp; Editor</h3>
+        <div class="meta">UNLimited Sports · Jan 2024 onward</div>
+        <p>Wrote and shot stories on pro, college and high school athletics for the Nebraska News Service, and edited and graded student work with a team of more than ten editors and leads.</p>
+      </li>
+      <li>
+        <h3>Freelance Photographer</h3>
+        <div class="meta">March 2023 – Present</div>
+        <p>Sporting events, plus senior, brand, family and group portraits.</p>
+      </li>
+      <li>
+        <h3>Sports Reporter</h3>
+        <div class="meta">Gretna Guide &amp; News / Douglas County Post-Gazette · Aug 2021 – May 2023</div>
+        <p>Where it started: more than 150 articles across two papers, and plenty of conversations with local coaches and athletes.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section id="honors">
+    <h2>Recognition</h2>
+    <ul class="honors">
+      <li>Finalist, Sports Photography <small>College Photographer of the Year · 2026</small></li>
+      <li>Sports Portfolio Award of Excellence<small>College Photographer of the Year · Fall 2025</small></li>
+      <li>Publications Board Awards, Daily Nebraskan <small>1st sports photo &amp; 1st sports feature (Fall 2025); 1st sports photo, 3rd sports analysis &amp; 3rd sports feature (Spring 2025)</small></li>
+      <li>Student of the Month <small>UNL College of Journalism · October 2025</small></li>
+      <li>Article of the Semester <small>UNLimited Sports · December 2025</small></li>
+      <li>Third Place, Roper Sports Writing Contest <small>UNL · March 2025</small></li>
+      <li>Most Outstanding UNLimited Sports Student <small>May 2024 &amp; December 2024</small></li>
+      <li>Dean's List <small>Fall 2023, Spring 2024, Fall 2024, Fall 2025 · Dean's Commendation List, Spring 2025</small></li>
+    </ul>
+  </section>
+
+  <section id="toolkit">
+    <h2>Toolkit</h2>
+    <ul class="chips">
+      <li>Photography</li><li>Writing</li><li>Interviewing</li><li>Podcasting</li>
+      <li>Lightroom</li><li>Photoshop</li><li>Premiere Pro</li><li>Audition</li>
+      <li>Photo Mechanic</li><li>Blox</li><li>X</li><li>Instagram</li>
+    </ul>
+  </section>
+
+  <section id="beyond">
+    <h2>Beyond the press box</h2>
+    <p>On campus I'm a tour guide for University of Nebraska Admissions and a student leader with The Salt Company in Lincoln. Back home in Elkhorn, I've spent years working at Hy-Vee, which taught me more about showing up and talking to people than any classroom has.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    Want to work together or just talk sports? <a href="https://www.linkedin.com/in/fisher-madsen-2390692a5/">Say hi on LinkedIn</a>.
+  </div>
+</footer>
+</body>
+</html>
