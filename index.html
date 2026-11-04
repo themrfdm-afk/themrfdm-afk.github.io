@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Groundhog Day Predictors Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:700|Open+Sans:400,600,700">
+<style>
+  /* Palette and type borrowed from dailynebraskan.com: red #ba1f1f, charcoal #333, Open Sans body, Roboto Condensed bold headings */
+  :root {
+    --red: #ba1f1f;
+    --red-soft: #cb5757;
+    --ink: #333;
+    --body: #444;
+    --muted: #767676;
+    --line: #ddd;
+    --panel: #f4f4f4;
+    --winter: #3a59a5;
+    --spring: #fec564;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 14px/1.5 'Open Sans', Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px 24px; }
+
+  .block-title { background: var(--red); border-bottom: 3px solid var(--red-soft); margin: 0 0 14px; }
+  .block-title h1 { margin: 0; padding: 8px 12px 6px; color: #fff; font: 700 22px 'Roboto Condensed', sans-serif; text-shadow: 1px 1px 1px rgba(0,0,0,.25); text-transform: uppercase; letter-spacing: .02em; }
+  .dek { margin: 0 0 14px; color: var(--body); }
+
+  .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; background: var(--panel); border: 1px solid rgba(0,0,0,.09); border-radius: 3px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.03); }
+  .controls label { display: block; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; color: var(--ink); margin-bottom: 3px; }
+  .controls input, .controls select { width: 100%; height: 38px; padding: 6px 10px; font: 400 14px 'Open Sans', sans-serif; color: var(--ink); background: #fff; border: 1px solid #ccc; border-radius: 0; border-bottom: 2px solid #ccc; }
+  .controls input:focus, .controls select:focus { outline: 0; border-bottom-color: var(--red); }
+  .opts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+  .opts label { display: inline-flex; align-items: center; gap: 6px; margin: 0; text-transform: none; font-weight: 600; font-size: 13px; }
+  .opts select { width: auto; height: 30px; }
+  button.reset { background: #4d4d4d; color: #fff; border: 0; padding: 6px 14px; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; cursor: pointer; }
+  button.reset:hover, button.reset:focus { background: var(--red); }
+
+  .count { margin: 14px 0 8px; font-weight: 700; text-transform: uppercase; font-size: 12px; color: var(--muted); }
+
+  .card { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,.09); border-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,.03); }
+  .card:hover { border-color: var(--red); }
+  .thumb { width: 96px; height: 96px; background: var(--panel) center/cover no-repeat; border-radius: 3px; }
+  .card h2 { margin: 0; font: 700 22px/1.15 'Roboto Condensed', sans-serif; color: var(--ink); }
+  .meta { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .tag { display: inline-block; margin-left: 6px; padding: 1px 6px; font: 700 10px 'Open Sans', sans-serif; text-transform: uppercase; color: #fff; background: #4d4d4d; vertical-align: 2px; }
+  .tag.retired { background: var(--muted); }
+  .type { color: var(--red); font-weight: 700; }
+
+  .record { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: 8px; }
+  .stat b { display: block; font: 700 22px/1 'Roboto Condensed', sans-serif; color: var(--ink); }
+  .stat span { font-size: 11px; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+  .bar { display: flex; height: 8px; background: var(--line); margin-bottom: 8px; }
+  .bar i { display: block; height: 100%; }
+  .strip { display: flex; flex-wrap: wrap; gap: 2px; }
+  .y { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; background: #ddd; cursor: default; }
+  .y.w { background: var(--winter); }
+  .y.s { background: var(--spring); color: #5a3d00; }
+  .y.n { background: repeating-linear-gradient(45deg, #eee, #eee 3px, #ddd 3px, #ddd 6px); color: #888; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; color: var(--red); }
+  details p { margin: 6px 0 0; color: var(--body); }
+
+  .more { display: block; margin: 16px auto 0; background: var(--red); color: #fff; border: 0; padding: 10px 28px; font: 700 13px 'Open Sans', sans-serif; text-transform: uppercase; cursor: pointer; }
+  .more:hover, .more:focus { background: #231f20; }
+  .empty { padding: 30px; text-align: center; background: var(--panel); color: var(--muted); }
+  .note { margin-top: 18px; padding-top: 10px; border-top: 3px solid var(--red); font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .controls { grid-template-columns: 1fr; }
+    .card { grid-template-columns: 64px 1fr; gap: 10px; }
+    .thumb { width: 64px; height: 64px; }
+    .y { width: 22px; height: 22px; font-size: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="block-title"><h1>Groundhog Day Predictors</h1></div>
+  <p class="dek">Search 93 weather-predicting critters across the U.S. and Canada by name, location or kind of creature, and see how each has called Groundhog Day since 1990.</p>
+
+  <form class="controls" role="search" onsubmit="return false">
+    <div>
+      <label for="q">Search name or place</label>
+      <input id="q" type="search" placeholder="Phil, Lincoln, Nebraska&hellip;" autocomplete="off">
+    </div>
+    <div>
+      <label for="region">State / province</label>
+      <select id="region"><option value="">All</option></select>
+    </div>
+    <div>
+      <label for="type">Type of creature</label>
+      <select id="type"><option value="">All</option></select>
+    </div>
+    <div class="opts">
+      <span>
+        <label><input type="checkbox" id="active" style="width:auto;height:auto"> Active predictors only</label>
+      </span>
+      <span>
+        <label for="sort">Sort by</label>
+        <select id="sort">
+          <option value="name">Name</option>
+          <option value="count">Most predictions</option>
+          <option value="winter">Most &ldquo;six more weeks&rdquo;</option>
+          <option value="spring">Most &ldquo;early spring&rdquo;</option>
+        </select>
+        <button type="button" class="reset" id="reset">Reset</button>
+      </span>
+    </div>
+  </form>
+
+  <div class="count" id="count" aria-live="polite"></div>
+  <div id="results"></div>
+  <button class="more" id="more" hidden>Show more</button>
+
+  <p class="note">A shadow means six more weeks of winter; no shadow means an early spring. The data records what each animal predicted, not whether the weather followed through, so &ldquo;track record&rdquo; here is each predictor&rsquo;s history of calls. Data: <a href="https://the-art-of-data-journalism.github.io/tutorial-data/groundhogs/predictions.csv" target="_blank" rel="noopener">groundhog-day.com via The Art of Data Journalism</a>.</p>
+</div>
+
+<script>
+(function () {
+  var PAGE = 15, shown = PAGE, all = [];
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var norm = function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+
+  fetch('groundhogs.json').then(function (r) { return r.json(); }).then(function (d) {
+    all = d.map(function (g) {
+      var w = 0, s = 0, na = 0;
+      g.preds.forEach(function (p) { if (p[1] === 1) w++; else if (p[1] === 0) s++; else na++; });
+      g.w = w; g.s = s; g.na = na; g.n = g.preds.length;
+      g.hay = norm([g.name, g.short, g.city, g.region, g.country, g.type].join(' '));
+      return g;
+    });
+    fill('region', uniq(all.map(function (g) { return g.region; })));
+    fill('type', uniq(all.map(function (g) { return g.type; })));
+    render();
+  }).catch(function () { $('results').innerHTML = '<div class="empty">Could not load the data.</div>'; });
+
+  function uniq(a) {
+    var c = {}; a.forEach(function (x) { if (x) c[x] = (c[x] || 0) + 1; });
+    return Object.keys(c).sort().map(function (k) { return [k, c[k]]; });
+  }
+  function fill(id, items) {
+    $(id).insertAdjacentHTML('beforeend', items.map(function (i) { return '<option value="' + esc(i[0]) + '">' + esc(i[0]) + ' (' + i[1] + ')</option>'; }).join(''));
+  }
+
+  function filtered() {
+    var terms = norm($('q').value).split(/\s+/).filter(Boolean);
+    var region = $('region').value, type = $('type').value, active = $('active').checked, sort = $('sort').value;
+    var out = all.filter(function (g) {
+      return (!region || g.region === region) && (!type || g.type === type) && (!active || g.active) &&
+        terms.every(function (t) { return g.hay.indexOf(t) > -1; });
+    });
+    out.sort(function (a, b) {
+      if (sort === 'count') return b.n - a.n || a.name.localeCompare(b.name);
+      if (sort === 'winter') return b.w - a.w || a.name.localeCompare(b.name);
+      if (sort === 'spring') return b.s - a.s || a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name);
+    });
+    return out;
+  }
+
+  function pct(n, d) { return d ? Math.round(n / d * 100) : 0; }
+
+  function card(g) {
+    var called = g.w + g.s;
+    var first = g.preds[0][0], last = g.preds[g.preds.length - 1][0];
+    var strip = g.preds.map(function (p) {
+      var cls = p[1] === 1 ? 'w' : p[1] === 0 ? 's' : 'n';
+      var label = p[1] === 1 ? 'Shadow: six more weeks of winter' : p[1] === 0 ? 'No shadow: early spring' : 'No prediction on record';
+      var tip = p[0] + ': ' + label + (p[2] ? ' — ' + p[2] : '');
+      return '<span class="y ' + cls + '" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">' + String(p[0]).slice(2) + '</span>';
+    }).join('');
+    var place = [g.city, g.region].filter(Boolean).join(', ') + (g.country && g.country !== 'USA' ? ', ' + g.country : '');
+    return '<article class="card">' +
+      '<div class="thumb" ' + (g.image ? 'style="background-image:url(\'' + esc(g.image) + '\')"' : '') + ' role="img" aria-label="' + esc(g.name) + '"></div>' +
+      '<div>' +
+        '<h2>' + esc(g.name) + (g.active ? '' : '<span class="tag retired">Retired</span>') + '</h2>' +
+        '<p class="meta">' + esc(place) + ' &middot; <span class="type">' + esc(g.type) + '</span></p>' +
+        '<div class="record">' +
+          '<div class="stats">' +
+            '<div class="stat"><b>' + g.n + '</b><span>Years on record (' + first + (last !== first ? '&ndash;' + last : '') + ')</span></div>' +
+            '<div class="stat"><b>' + g.w + '</b><span>Saw shadow (' + pct(g.w, called) + '%)</span></div>' +
+            '<div class="stat"><b>' + g.s + '</b><span>No shadow (' + pct(g.s, called) + '%)</span></div>' +
+            (g.na ? '<div class="stat"><b>' + g.na + '</b><span>No data</span></div>' : '') +
+          '</div>' +
+          '<div class="bar" aria-hidden="true"><i style="width:' + pct(g.w, g.n) + '%;background:var(--winter)"></i><i style="width:' + pct(g.s, g.n) + '%;background:var(--spring)"></i></div>' +
+          '<div class="strip">' + strip + '</div>' +
+          '<div class="legend"><span><i style="background:var(--winter)"></i>Shadow (6 more weeks)</span><span><i style="background:var(--spring)"></i>No shadow (early spring)</span></div>' +
+        '</div>' +
+        (g.desc ? '<details><summary>About ' + esc(g.short || g.name) + '</summary><p>' + esc(g.desc) + '</p></details>' : '') +
+      '</div></article>';
+  }
+
+  function render() {
+    var list = filtered();
+    $('count').textContent = list.length + (list.length === 1 ? ' predictor' : ' predictors');
+    $('results').innerHTML = list.length ? list.slice(0, shown).map(card).join('') : '<div class="empty">No predictors match. Try a different name, place or creature.</div>';
+    $('more').hidden = list.length <= shown;
+    $('more').textContent = 'Show more (' + (list.length - shown) + ' left)';
+    tellParent();
+  }
+
+  // Lets a parent CMS page resize the iframe: window.addEventListener('message', e => e.data.groundhogHeight && (iframe.style.height = e.data.groundhogHeight + 'px'))
+  function tellParent() {
+    if (window.parent === window) return;
+    requestAnimationFrame(function () { parent.postMessage({ groundhogHeight: document.documentElement.scrollHeight }, '*'); });
+  }
+  window.addEventListener('load', tellParent);
+  window.addEventListener('resize', tellParent);
+
+  ['q', 'region', 'type', 'active', 'sort'].forEach(function (id) {
+    $(id).addEventListener(id === 'q' ? 'input' : 'change', function () { shown = PAGE; render(); });
+  });
+  $('more').addEventListener('click', function () { shown += PAGE; render(); });
+  $('reset').addEventListener('click', function () {
+    $('q').value = ''; $('region').value = ''; $('type').value = ''; $('active').checked = false; $('sort').value = 'name';
+    shown = PAGE; render();
+  });
+})();
+</script>
+</body>
+</html>
