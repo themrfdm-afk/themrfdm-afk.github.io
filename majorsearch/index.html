@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNL Majors Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:700|Open+Sans:400,600,700">
+<style>
+  /* Palette and type borrowed from dailynebraskan.com: red #ba1f1f, charcoal #333, Open Sans body, Roboto Condensed bold headings */
+  :root {
+    --red: #ba1f1f;
+    --red-soft: #cb5757;
+    --ink: #333;
+    --body: #444;
+    --muted: #767676;
+    --line: #ddd;
+    --panel: #f4f4f4;
+    --up: #2e7d4f;
+    --down: #ba1f1f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 14px/1.5 'Open Sans', Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px 24px; }
+  a { color: var(--red); }
+
+  .block-title { background: var(--red); border-bottom: 3px solid var(--red-soft); margin: 0 0 14px; }
+  .block-title h1 { margin: 0; padding: 8px 12px 6px; color: #fff; font: 700 22px 'Roboto Condensed', sans-serif; text-shadow: 1px 1px 1px rgba(0,0,0,.25); text-transform: uppercase; letter-spacing: .02em; }
+  .dek { margin: 0 0 14px; color: var(--body); }
+
+  .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; background: var(--panel); border: 1px solid rgba(0,0,0,.09); border-radius: 3px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.03); }
+  .controls label { display: block; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; color: var(--ink); margin-bottom: 3px; }
+  .controls input, .controls select { width: 100%; height: 38px; padding: 6px 10px; font: 400 14px 'Open Sans', sans-serif; color: var(--ink); background: #fff; border: 1px solid #ccc; border-radius: 0; border-bottom: 2px solid #ccc; }
+  .controls input:focus, .controls select:focus { outline: 0; border-bottom-color: var(--red); }
+  .opts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+  .opts label { display: inline-flex; align-items: center; gap: 6px; margin: 0; text-transform: none; font-weight: 600; font-size: 13px; }
+  .opts select { width: auto; height: 30px; }
+  button.reset { background: #4d4d4d; color: #fff; border: 0; padding: 6px 14px; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; cursor: pointer; }
+  button.reset:hover, button.reset:focus { background: var(--red); }
+
+  .count { margin: 14px 0 8px; font-weight: 700; text-transform: uppercase; font-size: 12px; color: var(--muted); }
+
+  /* result rows */
+  .row { display: grid; grid-template-columns: 1fr 140px 110px; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 8px; background: #fff; border: 1px solid rgba(0,0,0,.09); border-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,.03); cursor: pointer; font: inherit; color: inherit; }
+  .row:hover, .row:focus { border-color: var(--red); outline: 0; }
+  .row h2 { margin: 0; font: 700 20px/1.15 'Roboto Condensed', sans-serif; color: var(--ink); }
+  .row:hover h2 { color: var(--red); }
+  .meta { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .spark { width: 140px; height: 36px; display: block; }
+  .num { text-align: right; }
+  .num b { display: block; font: 700 22px/1 'Roboto Condensed', sans-serif; color: var(--ink); }
+  .chg { font-size: 12px; font-weight: 700; }
+  .chg.up { color: var(--up); } .chg.down { color: var(--down); } .chg.flat { color: var(--muted); }
+  .small { font-size: 10px; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+
+  .more { display: block; margin: 16px auto 0; background: var(--red); color: #fff; border: 0; padding: 10px 28px; font: 700 13px 'Open Sans', sans-serif; text-transform: uppercase; cursor: pointer; }
+  .more:hover, .more:focus { background: #231f20; }
+  .empty { padding: 30px; text-align: center; background: var(--panel); color: var(--muted); }
+
+  /* detail view */
+  .back { background: none; border: 0; padding: 0; margin: 0 0 10px; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; color: var(--red); cursor: pointer; }
+  .back:hover { text-decoration: underline; }
+  .detail h2 { margin: 0; font: 700 30px/1.1 'Roboto Condensed', sans-serif; color: var(--ink); }
+  .also { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 14px 0; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .stat b { display: block; font: 700 28px/1 'Roboto Condensed', sans-serif; color: var(--ink); }
+  .stat span { font-size: 11px; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+  .stat b.up { color: var(--up); } .stat b.down { color: var(--down); }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 0 0 8px; }
+  .tabs span { font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; margin-right: 6px; }
+  .tabs button { background: #e8e8e8; color: var(--ink); border: 0; padding: 6px 12px; font: 700 12px 'Open Sans', sans-serif; text-transform: uppercase; cursor: pointer; }
+  .tabs button[aria-pressed=true] { background: var(--red); color: #fff; }
+  .tabs button:hover { background: #4d4d4d; color: #fff; }
+
+  .chartbox { position: relative; }
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  svg.chart text { font-family: 'Open Sans', sans-serif; fill: var(--muted); }
+  svg.chart .tot { font-weight: 700; fill: var(--ink); }
+  svg.chart .bar:hover rect, svg.chart .bar:focus rect { opacity: .8; }
+  svg.chart .bar:focus { outline: 0; }
+  svg.chart .hit { fill: transparent; }
+  .tip { position: absolute; pointer-events: none; background: #231f20; color: #fff; padding: 8px 10px; font-size: 12px; line-height: 1.4; min-width: 150px; max-width: 260px; z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  .tip b { font: 700 14px 'Roboto Condensed', sans-serif; text-transform: uppercase; }
+  .tip div { display: flex; justify-content: space-between; gap: 12px; }
+  .tip i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 0; font-size: 12px; color: var(--body); }
+  .legend i { display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px; }
+
+  .tablewrap { overflow-x: auto; margin-top: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { padding: 5px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font: 700 11px 'Open Sans', sans-serif; text-transform: uppercase; color: var(--ink); background: var(--panel); }
+  th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 150px; }
+  tr.total td { font-weight: 700; border-top: 2px solid var(--ink); }
+  td.z { color: #bbb; }
+  td i { display: inline-block; width: 9px; height: 9px; margin-right: 6px; }
+
+  .note { margin-top: 18px; padding-top: 10px; border-top: 3px solid var(--red); font-size: 12px; color: var(--muted); }
+  .note p { margin: 0 0 6px; }
+
+  @media (max-width: 640px) {
+    .controls { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 1fr 90px; }
+    .spark { display: none; }
+    .detail h2 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="block-title"><h1>UNL Majors: Who&rsquo;s Studying What</h1></div>
+
+  <!-- list view -->
+  <section id="listView">
+    <p class="dek">Search more than 300 majors and programs at the University of Nebraska&ndash;Lincoln and see how many students have been enrolled in each every fall since 2016.</p>
+
+    <form class="controls" role="search" onsubmit="return false">
+      <div>
+        <label for="q">Search for a major</label>
+        <input id="q" type="search" placeholder="Journalism, nursing, engineering&hellip;" autocomplete="off">
+      </div>
+      <div>
+        <label for="college">College</label>
+        <select id="college"><option value="">All colleges</option></select>
+      </div>
+      <div>
+        <label for="level">Degree level</label>
+        <select id="level"><option value="">All levels</option></select>
+      </div>
+      <div class="opts">
+        <span>
+          <label><input type="checkbox" id="current" style="width:auto;height:auto"> Offered this year</label>
+          <label style="margin-left:14px"><input type="checkbox" id="raikes" style="width:auto;height:auto"> Include Raikes programs</label>
+        </span>
+        <span>
+          <label for="sort">Sort by</label>
+          <select id="sort">
+            <option value="name">Name</option>
+            <option value="size">Most students now</option>
+            <option value="small">Fewest students now</option>
+            <option value="pct">Fastest growth</option>
+            <option value="drop">Biggest decline</option>
+          </select>
+          <button type="button" class="reset" id="reset">Reset</button>
+        </span>
+      </div>
+    </form>
+
+    <div class="count" id="count" aria-live="polite"></div>
+    <div id="results"></div>
+    <button class="more" id="more" hidden>Show more</button>
+  </section>
+
+  <!-- detail view -->
+  <section id="detailView" class="detail" hidden></section>
+
+  <div class="note">
+    <p>Counts are students enrolled with that major listed as their first major in the fall term, by college and degree. A student with two majors is counted under each. Programs are matched across years by name and by university major code, so a program that was renamed or moved colleges generally appears as one line, but some small or short-lived programs may be split. Counts for filtered views include only the selected college or degree level.</p>
+    <p>Source: UNL Institutional Research and Planning, &ldquo;Majors by College&rdquo; (DR12573), Fall 2016&ndash;Fall 2025.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var PAGE = 20, shown = PAGE, D = null, all = [], current = null, stackBy = 'level';
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var norm = function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+  var fmt = function (n) { return n.toLocaleString('en-US'); };
+  var PALETTE = ['#ba1f1f', '#3a59a5', '#fec564', '#4d4d4d', '#2e8b8b', '#8a5a9e', '#9a9a9a', '#e07b39', '#6f9e3a', '#c97b9a'];
+  var RK_ONLY = '__raikes';
+  var LEVELS = ["Bachelor's", "Master's", 'Doctoral', 'Law & veterinary', 'Certificate / specialist', 'Non-degree / other'];
+
+  fetch('majors.json').then(function (r) { return r.json(); }).then(function (d) {
+    D = d;
+    D.nY = D.years.length;
+    D.first = D.years[0]; D.last = D.years[D.nY - 1];
+    all = D.majors.map(function (m) {
+      m.colSet = {}; m.levSet = {};
+      m.r.forEach(function (r) { m.colSet[r[1]] = 1; m.levSet[D.degrees[r[2]][1]] = 1; });
+      m.hay = norm([m.n].concat(m.a, m.k, Object.keys(m.colSet).map(function (c) { return D.colleges[c]; })).join(' '));
+      return m;
+    });
+    [].forEach.call(document.querySelectorAll('.lastYear'), function (e) { e.textContent = D.last; });
+    [].forEach.call(document.querySelectorAll('.firstYear'), function (e) { e.textContent = D.first; });
+    D.colleges.forEach(function (c, i) {
+      $('college').insertAdjacentHTML('beforeend', '<option value="' + i + '">' + esc(c) + '</option>');
+    });
+    LEVELS.forEach(function (l) { $('level').insertAdjacentHTML('beforeend', '<option>' + esc(l) + '</option>'); });
+    $('level').insertAdjacentHTML('beforeend', '<option value="' + RK_ONLY + '">Raikes programs only</option>');
+    // relabel sort options now that years are known
+    $('sort').options[3].text = 'Fastest growth since ' + D.first;
+    $('sort').options[4].text = 'Biggest decline since ' + D.first;
+    route();
+  }).catch(function () { $('results').innerHTML = '<div class="empty">Could not load the data.</div>'; });
+
+  /* ---------- data helpers ---------- */
+  function filt() { return { col: $('college').value, lev: $('level').value }; }
+  function keep(r, f, m) {
+    var lev = f.lev === '' || (f.lev === RK_ONLY ? m.rk : D.degrees[r[2]][1] === f.lev);
+    return (f.col === '' || r[1] === +f.col) && lev;
+  }
+  function totals(m, f) {
+    var t = new Array(D.nY).fill(0);
+    m.r.forEach(function (r) { if (keep(r, f, m)) t[r[0]] += r[3]; });
+    return t;
+  }
+  function pctChange(a, b) { return a ? (b - a) / a * 100 : null; }
+  function chgHtml(a, b, label) {
+    if (!a && !b) return '<span class="chg flat">&mdash;</span>';
+    if (!a) return '<span class="chg up">New</span>';
+    var p = pctChange(a, b), cls = Math.abs(p) < 0.5 ? 'flat' : p > 0 ? 'up' : 'down';
+    return '<span class="chg ' + cls + '">' + (p > 0.5 ? '&#9650; +' : p < -0.5 ? '&#9660; ' : '') + Math.round(p) + '%</span>' + (label ? ' <span class="small">' + label + '</span>' : '');
+  }
+
+  /* ---------- list view ---------- */
+  function filtered() {
+    var f = filt(), terms = norm($('q').value).split(/\s+/).filter(Boolean), sort = $('sort').value, cur = $('current').checked, rk = $('raikes').checked || f.lev === RK_ONLY;
+    var out = [];
+    all.forEach(function (m) {
+      if (!terms.every(function (t) { return m.hay.indexOf(t) > -1; })) return;
+      if (m.rk === 1 && !rk) return;
+      var t = totals(m, f);
+      if (!t.some(Boolean)) return;
+      if (cur && !t[D.nY - 1]) return;
+      out.push({ m: m, t: t });
+    });
+    out.sort(function (a, b) {
+      var an = a.t[D.nY - 1], bn = b.t[D.nY - 1];
+      function g(x) { var s = x.t[0]; return s >= 20 ? pctChange(s, x.t[D.nY - 1]) : null; }
+      if (sort === 'size') return bn - an || a.m.n.localeCompare(b.m.n);
+      if (sort === 'small') return (an || Infinity) - (bn || Infinity) || a.m.n.localeCompare(b.m.n);
+      if (sort === 'pct' ||sort === 'drop') {
+        var ga = g(a), gb = g(b);
+        if (ga == null && gb == null) return a.m.n.localeCompare(b.m.n);
+        if (ga == null) return 1; if (gb == null) return -1;
+        return sort === 'pct' ? gb - ga : ga - gb;
+      }
+      return a.m.n.localeCompare(b.m.n);
+    });
+    return out;
+  }
+
+  function spark(t) {
+    var w = 140, h = 36, p = 3, max = Math.max.apply(null, t) || 1;
+    var pts = t.map(function (v, i) { return [p + i * (w - 2 * p) / (t.length - 1), h - p - v / max * (h - 2 * p)]; });
+    var d = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join('');
+    var l = pts[pts.length - 1];
+    return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="#4d4d4d" stroke-width="1.6"/><circle cx="' + l[0] + '" cy="' + l[1] + '" r="3" fill="#ba1f1f"/></svg>';
+  }
+
+  function renderList() {
+    var res = filtered(), f = filt();
+    $('count').textContent = res.length + (res.length === 1 ? ' major' : ' majors');
+    if (!res.length) { $('results').innerHTML = '<div class="empty">No majors match. Try fewer words or clear the filters.</div>'; $('more').hidden = true; return; }
+    $('results').innerHTML = res.slice(0, shown).map(function (x) {
+      var m = x.m, cols = Object.keys(m.colSet).map(function (c) { return D.colleges[c]; });
+      var now = x.t[D.nY - 1];
+      var base = x.t[0];
+      return '<button class="row" data-i="' + all.indexOf(m) + '">' +
+        '<div><h2>' + esc(m.n) + '</h2><p class="meta">' + esc(cols.slice(0, 3).join(' · ') + (cols.length > 3 ? ' + ' + (cols.length - 3) + ' more' : '')) + '</p></div>' +
+        spark(x.t) +
+        '<div class="num"><b>' + fmt(now) + '</b><span class="small">Fall ' + D.last + '</span><br>' + (base || now ? chgHtml(base, now) + ' <span class="small">vs ' + D.first + '</span>' : '') + '</div>' +
+        '</button>';
+    }).join('');
+    $('more').hidden = res.length <= shown;
+    $('more').textContent = 'Show more (' + (res.length - shown) + ' left)';
+  }
+
+  /* ---------- detail view ---------- */
+  function slug(m) { return encodeURIComponent(m.n); }
+
+  function series(m, f, by) {
+    // returns [{label, color, vals[]}] for the chosen stacking dimension
+    var map = {}, order = [];
+    m.r.forEach(function (r) {
+      if (!keep(r, f, m)) return;
+      var key = by === 'level' ? D.degrees[r[2]][1] : by === 'college' ? D.colleges[r[1]] : D.degrees[r[2]][0];
+      if (!map[key]) { map[key] = new Array(D.nY).fill(0); order.push(key); }
+      map[key][r[0]] += r[3];
+    });
+    if (by === 'level') order.sort(function (a, b) { return LEVELS.indexOf(a) - LEVELS.indexOf(b); });
+    else order.sort(function (a, b) { return map[b][D.nY - 1] - map[a][D.nY - 1] || sum(map[b]) - sum(map[a]); });
+    // collapse the long tail into "Other" so colors stay readable
+    var keepN = PALETTE.length - 1;
+    var res = order.map(function (k, i) { return { label: k, vals: map[k] }; });
+    if (res.length > PALETTE.length) {
+      var rest = res.slice(keepN), other = new Array(D.nY).fill(0);
+      rest.forEach(function (s) { s.vals.forEach(function (v, i) { other[i] += v; }); });
+      res = res.slice(0, keepN).concat([{ label: 'Other (' + rest.length + ')', vals: other }]);
+    }
+    res.forEach(function (s, i) { s.color = by === 'level' ? PALETTE[LEVELS.indexOf(s.label) % PALETTE.length] : PALETTE[i]; });
+    return res;
+  }
+  function sum(a) { return a.reduce(function (x, y) { return x + y; }, 0); }
+
+  function renderDetail(m) {
+    current = m;
+    var f = filt(), t = totals(m, f), n = D.nY - 1;
+    var peak = 0; t.forEach(function (v, i) { if (v > t[peak]) peak = i; });
+    var by = stackBy;
+    var scope = [];
+    if (f.col !== '') scope.push(D.colleges[f.col]);
+    if (f.lev) scope.push(f.lev === RK_ONLY ? 'Raikes programs' : f.lev);
+    var cols = Object.keys(m.colSet).map(function (c) { return D.colleges[c]; });
+
+    var h = '<button class="back" id="back">&larr; All majors</button>' +
+      '<h2>' + esc(m.n) + '</h2>' +
+      '<p class="also">' + esc(cols.join(' · ')) + (scope.length ? ' &mdash; showing only ' + esc(scope.join(', ')) : '') +
+      (m.a.length ? '<br>' + (m.rk === 2 ? 'Combines all Raikes programs: ' : 'Also listed as: ') + esc(m.a.join('; ')) : '') + '</p>' +
+      '<div class="stats">' +
+        '<div class="stat"><b>' + fmt(t[n]) + '</b><span>Students, Fall ' + D.last + '</span></div>' +
+        statChg(t[n - 1], t[n], 'vs. Fall ' + D.years[n - 1]) +
+        statChg(t[0], t[n], 'vs. Fall ' + D.first) +
+        '<div class="stat"><b>' + fmt(t[peak]) + '</b><span>Peak (Fall ' + D.years[peak] + ')</span></div>' +
+      '</div>' +
+      '<div class="tabs"><span>Break down by</span>' +
+        [['level', 'Degree level'], ['college', 'College'], ['deg', 'Degree']].map(function (o) {
+          return '<button data-by="' + o[0] + '" aria-pressed="' + (by === o[0]) + '">' + o[1] + '</button>';
+        }).join('') + '</div>' +
+      '<div class="chartbox" id="chartbox"></div><div class="legend" id="legend"></div>' +
+      '<div class="tablewrap" id="tablewrap"></div>';
+    $('detailView').innerHTML = h;
+    drawChart(m, f, by);
+  }
+
+  function statChg(a, b, label) {
+    if (!a) return '<div class="stat"><b>&mdash;</b><span>' + label + '</span></div>';
+    var p = pctChange(a, b), cls = Math.abs(p) < 0.5 ? '' : p > 0 ? 'up' : 'down';
+    return '<div class="stat"><b class="' + cls + '">' + (p > 0.5 ? '+' : '') + Math.round(p) + '%</b><span>' + label + ' (' + (b - a > 0 ? '+' : '') + fmt(b - a) + ')</span></div>';
+  }
+
+  function drawChart(m, f, by) {
+    var S = series(m, f, by), tot = totals(m, f), n = D.nY;
+    var box = $('chartbox'), W = Math.max(box.clientWidth || 700, 300), H = W < 520 ? 280 : 340;
+    var ml = 44, mr = 8, mt = 22, mb = 28, pw = W - ml - mr, ph = H - mt - mb;
+    var max = Math.max.apply(null, tot) || 1;
+    // nice axis max
+    var step = Math.pow(10, Math.floor(Math.log10(max))), steps = [1, 2, 2.5, 5, 10], top = max;
+    for (var i = 0; i < steps.length; i++) { if (steps[i] * step >= max * 1.02) { top = steps[i] * step; break; } }
+    var ticks = 4, bw = pw / n, bar = Math.min(bw * 0.7, 60);
+    var y = function (v) { return mt + ph - v / top * ph; };
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Students enrolled in ' + esc(m.n) + ' by fall term, stacked by ' + by + '">';
+    for (var k = 0; k <= ticks; k++) {
+      var v = top / ticks * k, yy = y(v);
+      svg += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + yy + '" y2="' + yy + '" stroke="' + (k ? '#e4e4e4' : '#999') + '"/>' +
+             '<text x="' + (ml - 6) + '" y="' + (yy + 4) + '" font-size="11" text-anchor="end">' + fmt(Math.round(v)) + '</text>';
+    }
+    for (var j = 0; j < n; j++) {
+      var x = ml + j * bw + (bw - bar) / 2, acc = 0, g = '';
+      S.forEach(function (s) {
+        var val = s.vals[j];
+        if (!val) return;
+        g += '<rect x="' + x + '" y="' + y(acc + val) + '" width="' + bar + '" height="' + Math.max(ph * val / top, 0.5) + '" fill="' + s.color + '"/>';
+        acc += val;
+      });
+      g += '<text class="tot" x="' + (x + bar / 2) + '" y="' + (y(acc) - 5) + '" font-size="' + (W < 520 ? 10 : 12) + '" text-anchor="middle">' + fmt(acc) + '</text>' +
+           '<text x="' + (x + bar / 2) + '" y="' + (H - 9) + '" font-size="11" text-anchor="middle">' + (W < 520 ? "'" + String(D.years[j]).slice(2) : D.years[j]) + '</text>' +
+           '<rect class="hit" x="' + (ml + j * bw) + '" y="' + mt + '" width="' + bw + '" height="' + (ph + mb) + '"/>';
+      svg += '<g class="bar" data-j="' + j + '" tabindex="0" aria-label="Fall ' + D.years[j] + ': ' + fmt(acc) + ' students">' + g + '</g>';
+    }
+    svg += '</svg>';
+    box.innerHTML = svg + '<div class="tip" id="tip" hidden></div>';
+
+    $('legend').innerHTML = S.map(function (s) { return '<span><i style="background:' + s.color + '"></i>' + esc(s.label) + '</span>'; }).join('');
+
+    // table
+    var th = '<tr><th>' + (by === 'level' ? 'Degree level' : by === 'college' ? 'College' : 'Degree') + '</th>' +
+      D.years.map(function (y) { return '<th>' + y + '</th>'; }).join('') + '</tr>';
+    var rows = S.map(function (s) {
+      return '<tr><td><i style="background:' + s.color + '"></i>' + esc(s.label) + '</td>' +
+        s.vals.map(function (v) { return v ? '<td>' + fmt(v) + '</td>' : '<td class="z">&ndash;</td>'; }).join('') + '</tr>';
+    }).join('');
+    rows += '<tr class="total"><td>Total</td>' + tot.map(function (v) { return '<td>' + fmt(v) + '</td>'; }).join('') + '</tr>';
+    $('tablewrap').innerHTML = '<table><thead>' + th + '</thead><tbody>' + rows + '</tbody></table>';
+
+    // tooltip
+    var tip = $('tip');
+    function show(j, ev) {
+      var html = '<b>Fall ' + D.years[j] + ' &middot; ' + fmt(tot[j]) + '</b>';
+      S.slice().reverse().forEach(function (s) {
+        if (s.vals[j]) html += '<div><span><i style="background:' + s.color + '"></i>' + esc(s.label) + '</span><span>' + fmt(s.vals[j]) + '</span></div>';
+      });
+      tip.innerHTML = html; tip.hidden = false;
+      var cx = ml + j * bw + bw / 2, left = cx + 14;
+      if (left + tip.offsetWidth > box.clientWidth) left = cx - tip.offsetWidth - 14;
+      tip.style.left = Math.max(0, left) + 'px';
+      tip.style.top = (mt + 4) + 'px';
+    }
+    [].forEach.call(box.querySelectorAll('.bar'), function (g) {
+      var j = +g.getAttribute('data-j');
+      g.addEventListener('mouseenter', function () { show(j); });
+      g.addEventListener('focus', function () { show(j); });
+      g.addEventListener('mouseleave', function () { tip.hidden = true; });
+      g.addEventListener('blur', function () { tip.hidden = true; });
+      g.addEventListener('touchstart', function () { show(j); }, { passive: true });
+    });
+    resizeParent();
+  }
+
+  /* ---------- routing ---------- */
+  function route() {
+    var h = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    var m = h && all.filter(function (x) { return x.n === h; })[0];
+    if (m) { $('listView').hidden = true; $('detailView').hidden = false; renderDetail(m); }
+    else { $('listView').hidden = false; $('detailView').hidden = true; current = null; renderList(); }
+    resizeParent();
+  }
+  window.addEventListener('hashchange', route);
+
+  $('results').addEventListener('click', function (e) {
+    var b = e.target.closest('.row'); if (!b) return;
+    var m = all[+b.getAttribute('data-i')];
+    location.hash = slug(m);
+    window.scrollTo(0, 0);
+    try { window.parent.postMessage({ type: 'majorsearch:scrollTop' }, '*'); } catch (x) {}
+  });
+  $('detailView').addEventListener('click', function (e) {
+    if (e.target.id === 'back') { history.length > 1 && location.hash ? history.back() : (location.hash = ''); return; }
+    var by = e.target.getAttribute && e.target.getAttribute('data-by');
+    if (by) { stackBy = by; renderDetail(current); }
+  });
+  ['q', 'college', 'level', 'sort', 'current', 'raikes'].forEach(function (id) {
+    $(id).addEventListener(id === 'q' ? 'input' : 'change', function () {
+      shown = PAGE;
+      if (current) renderDetail(current); else renderList();
+    });
+  });
+  $('more').addEventListener('click', function () { shown += PAGE; renderList(); });
+  $('reset').addEventListener('click', function () {
+    $('q').value = ''; $('college').value = ''; $('level').value = ''; $('sort').value = 'name'; $('current').checked = false; $('raikes').checked = false;
+    shown = PAGE; renderList();
+  });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (current) drawChart(current, filt(), stackBy); resizeParent(); }, 120); });
+
+  /* ---------- iframe: tell the CMS page how tall we are ---------- */
+  function resizeParent() {
+    try {
+      var h = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: 'majorsearch:height', height: h }, '*');
+    } catch (e) {}
+  }
+  if (window.ResizeObserver) new ResizeObserver(resizeParent).observe(document.body);
+})();
+</script>
+</body>
+</html>
