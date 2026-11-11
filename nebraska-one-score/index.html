@@ -1,0 +1,1269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Score Short</title>
+<meta name="description" content="An endless guessing game: name the Nebraska football loss decided by one score.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=VT323&display=swap">
+<style>
+  :root {
+    --ink: #000; --silver: #c0c0c0; --dk: #808080; --lt: #dfdfdf; --white: #fff;
+    --scarlet: #d00000; --scarlet2: #8a0014; --cream: #fff6dc; --teal: #008080;
+    --g: #00c000; --y: #ffd400; --x: #c0c0c0; --fg: #000; --muted: #404040;
+    --bevel: 2px solid; --raised: #fff #404040 #404040 #fff; --sunk: #808080 #fff #fff #808080;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  /* static Memphis-style desktop. nothing moves. */
+  body {
+    color: var(--fg);
+    font: 15px/1.4 Tahoma, Verdana, "MS Sans Serif", Arial, sans-serif;
+    background:
+      radial-gradient(circle, #ff4fa3 0 4px, transparent 5px) 18px 22px / 96px 96px,
+      radial-gradient(circle, #ffe600 0 3px, transparent 4px) 66px 70px / 96px 96px,
+      linear-gradient(135deg, transparent 0 47%, rgba(122,60,255,.35) 47% 50%, transparent 50%) 0 0 / 72px 72px,
+      var(--teal);
+  }
+  .app { max-width: 580px; margin: 0 auto; padding: 0 12px 84px; }
+
+  /* ---------- window chrome ---------- */
+  .win, .clue, .alert, .result, dialog { background: var(--silver); border: var(--bevel); border-color: var(--raised); box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt), 3px 3px 0 rgba(0,0,0,.55); padding: 3px; }
+  .titlebar, .clue .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: linear-gradient(90deg, var(--scarlet2), #e0002a 70%, #ff5a3d); color: #fff; font: 700 13px Tahoma, Verdana, sans-serif; padding: 3px 4px 3px 6px; margin: 0; min-height: 24px; }
+  .titlebar h2, .clue h3 { margin: 0; font: inherit; letter-spacing: 0; text-transform: none; color: #fff; }
+  .wbtns { display: flex; gap: 2px; }
+  .wbtns i { width: 17px; height: 15px; background: var(--silver); border: 1px solid; border-color: var(--raised); color: #000; font: 700 10px/12px Arial, sans-serif; text-align: center; font-style: normal; box-shadow: inset -1px -1px var(--dk); }
+
+  /* ---------- header ---------- */
+  header { text-align: center; padding: 20px 0 4px; }
+  .logo { display: inline-block; font: 400 48px/1 Anton, Impact, "Arial Black", sans-serif; text-transform: uppercase; letter-spacing: .02em; transform: rotate(-3deg) skewX(-6deg);
+    background: linear-gradient(180deg, #fff200 0%, #ff9d00 48%, #ff2a00 52%, #b00000 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(2px 2px 0 #fff) drop-shadow(4px 4px 0 #000); padding: 0 6px; }
+  .logo b { font-weight: 400; background: linear-gradient(180deg, #b6fbff 0%, #00c4ff 48%, #0050ff 52%, #002a9a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { margin: 14px 0 0; color: #fff; font: 700 13px Tahoma, Verdana, sans-serif; text-shadow: 1px 1px 0 #000; }
+  .bar { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 10px; flex-wrap: wrap; }
+  .pill, .go, .btns button, .give { font: 700 13px Tahoma, Verdana, sans-serif; color: #000; background: var(--silver); border: var(--bevel); border-color: var(--raised); box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt); padding: 5px 14px; cursor: pointer; border-radius: 0; }
+  .pill:active, .go:active:not(:disabled), .btns button:active, .give:active { border-color: var(--sunk); box-shadow: inset 1px 1px var(--dk); padding: 6px 13px 4px 15px; }
+  .stuck { background: var(--cream); border: var(--bevel); border-color: var(--sunk); padding: 8px 12px; font-size: 14px; color: #000; text-align: left; box-shadow: 2px 2px 0 rgba(0,0,0,.45); }
+  .stuck b { color: var(--scarlet); }
+  .stuck small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .mission { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 12px 0; background: #000; color: #39ff14; font: 400 20px/1.1 VT323, "Courier New", monospace; padding: 5px 10px; border: var(--bevel); border-color: var(--sunk); letter-spacing: .04em; text-transform: uppercase; }
+
+  .alert { margin-bottom: 12px; padding: 0; }
+  .alert .body { padding: 10px 12px; background: var(--white); margin: 3px; border: var(--bevel); border-color: var(--sunk); font-size: 15px; }
+  .alert .body b { color: var(--scarlet); }
+  .alert .titlebar { background: linear-gradient(90deg, #000080, #1084d0); }
+
+  /* ---------- clues ---------- */
+  .clues { display: grid; gap: 12px; margin: 16px 0 8px; }
+  .clue { padding: 3px; }
+  .clue .help { font: 700 10px Tahoma, sans-serif; color: #000; background: var(--y); border: 1px solid #000; padding: 0 6px; white-space: nowrap; margin-right: 2px; }
+  .clue p { margin: 0; background: var(--white); padding: 6px 10px; border-left: 2px solid var(--dk); border-right: 2px solid var(--lt); font-size: 15px; }
+  .clue .top + p { margin-top: 3px; border-top: 2px solid var(--dk); }
+  .clue p:last-child { border-bottom: 2px solid var(--lt); }
+  .clue .who { color: var(--scarlet); font-weight: 700; }
+  .clue.locked .top { background: var(--dk); }
+  .clue.locked .help { display: none; }
+  .clue.locked p { color: #606060; font-style: italic; background: #e8e8e8; }
+
+  .cols, .row { display: grid; grid-template-columns: 1.1fr 1.7fr .85fr .9fr .9fr; gap: 4px; }
+  .cols { margin: 16px 0 4px; font: 700 12px Tahoma, sans-serif; color: #fff; text-shadow: 1px 1px 0 #000; text-align: center; }
+  .row { margin-bottom: 4px; }
+  .tile { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-weight: 700; font-size: 14px; line-height: 1.1; padding: 3px; background: var(--silver); border: var(--bevel); border-color: var(--raised); box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt); color: #000; }
+  .row:not(:has(.g, .y, .x)) .tile { background: var(--white); border-color: var(--sunk); box-shadow: none; }
+  .tile.g { background: var(--g); color: #fff; text-shadow: 1px 1px 0 #003a00; }
+  .tile.y { background: var(--y); color: #000; }
+  .tile.x { background: var(--silver); color: #000; }
+  .tile .arr { font-size: 12px; }
+  .tile.flip { animation: flip .4s ease both; }
+  @keyframes flip { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+  @media (prefers-reduced-motion: reduce) { .tile.flip { animation: none; } }
+
+  /* ---------- input ---------- */
+  .picker { position: relative; margin-top: 16px; }
+  #play { margin-bottom: 4px; }
+  .picker input { width: 100%; font: 400 16px Tahoma, Verdana, sans-serif; padding: 8px 10px; border: var(--bevel); border-color: var(--sunk); border-radius: 0; background: #fff; color: #000; outline: 0; box-shadow: inset 1px 1px #404040; }
+  .picker input:focus { outline: 1px dotted #000; outline-offset: -4px; background: #ffffe1; }
+  .list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); max-height: 270px; overflow-y: auto; background: #fff; border: var(--bevel); border-color: var(--raised); box-shadow: 3px 3px 0 rgba(0,0,0,.5); z-index: 5; display: none; }
+  .list.open { display: block; }
+  .list button { display: flex; justify-content: space-between; gap: 12px; width: 100%; text-align: left; background: none; border: 0; color: #000; font: 400 15px Tahoma, Verdana, sans-serif; padding: 6px 10px; cursor: pointer; }
+  .list button:hover, .list button.hl { background: #000080; color: #fff; }
+  .list .none { padding: 8px 10px; }
+  .go { margin-top: 10px; width: 100%; padding: 10px; font-size: 17px; color: #fff; text-shadow: 1px 1px 0 #000; background: var(--scarlet); border-color: #ff8a8a #500000 #500000 #ff8a8a; box-shadow: inset -1px -1px #8a0000, inset 1px 1px #ff5a5a, 0 0 0 1px #000; }
+  .go:disabled { background: var(--silver); color: var(--dk); text-shadow: 1px 1px 0 #fff; cursor: default; border-color: var(--raised); box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt); }
+  .footfact { margin-top: 24px; }
+  .ask { color: #fff; font: 700 14px Tahoma, Verdana, sans-serif; text-shadow: 1px 1px 0 #000; margin-top: 16px; }
+  .ask + .picker { margin-top: 6px; }
+  .row2 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; }
+  .left { color: #fff; font: 700 13px Tahoma, sans-serif; text-shadow: 1px 1px 0 #000; }
+  .give { font-size: 12px; padding: 3px 10px; }
+
+  /* ---------- result ---------- */
+  .result { margin-top: 18px; padding: 0; }
+  .result .titlebar { background: linear-gradient(90deg, #006000, #00b000); }
+  .result.lost .titlebar { background: linear-gradient(90deg, var(--scarlet2), #e0002a); }
+  .result .inner { background: var(--white); margin: 3px; padding: 12px 14px; border: var(--bevel); border-color: var(--sunk); }
+  .score { font: 400 34px/1.05 Anton, Impact, sans-serif; letter-spacing: .02em; text-transform: uppercase; color: var(--scarlet); margin: 4px 0 8px; }
+  .result p { margin: 6px 0; }
+  .btns { display: flex; gap: 8px; margin: 14px 0 3px; flex-wrap: wrap; }
+  .btns button { flex: 1; min-width: 130px; padding: 8px; font-size: 14px; }
+  .btns button.primary { background: var(--scarlet); color: #fff; text-shadow: 1px 1px 0 #000; border-color: #ff8a8a #500000 #500000 #ff8a8a; box-shadow: inset -1px -1px #8a0000, inset 1px 1px #ff5a5a, 0 0 0 1px #000; }
+  .stats { display: flex; justify-content: space-around; margin-top: 10px; text-align: center; }
+  .stats b { display: block; font: 400 36px/1 VT323, monospace; color: #39ff14; background: #000; padding: 2px 8px; border: var(--bevel); border-color: var(--sunk); }
+  .stats span { font-size: 12px; color: var(--muted); }
+
+  dialog { padding: 0; max-width: 480px; width: calc(100% - 28px); color: #000; font: inherit; }
+  dialog::backdrop { background: rgba(0,128,128,.6); }
+  dialog .titlebar { margin: 0; }
+  dialog .inner { background: var(--silver); padding: 6px 14px 12px; }
+  dialog li { margin: 6px 0; }
+  dialog ul { padding-left: 18px; margin: 8px 0; }
+  .sw { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; border: 1px solid #000; }
+  .toast { position: fixed; left: 50%; top: 20px; transform: translateX(-50%); background: #ffffe1; color: #000; border: 1px solid #000; padding: 6px 14px; font: 13px Tahoma, sans-serif; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 20; box-shadow: 3px 3px 0 rgba(0,0,0,.5); }
+  .toast.show { opacity: 1; }
+
+  .foot { text-align: center; color: #fff; font: 12px Tahoma, sans-serif; margin-top: 26px; text-shadow: 1px 1px 0 #000; }
+  .foot .badge { display: inline-block; margin-top: 8px; padding: 2px 8px; background: var(--silver); color: #000; border: var(--bevel); border-color: var(--raised); text-shadow: none; font-size: 11px; }
+
+  /* ---------- taskbar ---------- */
+  .taskbar { position: fixed; left: 0; right: 0; bottom: 0; height: 38px; background: var(--silver); border-top: 2px solid #fff; box-shadow: 0 -1px 0 var(--dk); display: flex; align-items: center; gap: 6px; padding: 3px 4px; z-index: 10; font: 700 13px Tahoma, sans-serif; }
+  .taskbar .start { display: flex; align-items: center; gap: 6px; padding: 3px 10px; font-weight: 700; background: var(--silver); border: var(--bevel); border-color: var(--raised); box-shadow: inset -1px -1px var(--dk); cursor: default; }
+  .taskbar .start i { width: 14px; height: 14px; background: conic-gradient(var(--scarlet) 0 25%, var(--g) 0 50%, #1060ff 0 75%, var(--y) 0); display: inline-block; }
+  .taskbar .task { flex: 1; max-width: 240px; padding: 4px 10px; background: repeating-conic-gradient(var(--silver) 0 25%, #fff 0 50%) 0 0 / 2px 2px; border: var(--bevel); border-color: var(--sunk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .taskbar .tray { margin-left: auto; padding: 4px 10px; border: var(--bevel); border-color: var(--sunk); font: 400 17px/1 VT323, monospace; letter-spacing: .03em; white-space: nowrap; }
+  @media (max-width: 480px) { .taskbar .task { display: none; } .logo { font-size: 40px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">One Score <b>Short</b></div>
+    <p class="sub">★ The Unofficial Nebraska Football Homepage ★ Est. 1997 ★</p>
+    <div class="bar">
+      <button class="pill" id="btnStats" type="button">Stats</button>
+      <button class="pill" id="btnHelp" type="button">How to play</button>
+    </div>
+  </header>
+
+  <div class="mission" id="tag"></div>
+
+  <div class="alert">
+    <div class="titlebar"><h2>Breaking News.exe</h2><div class="wbtns"><i>_</i><i>□</i><i>×</i></div></div>
+    <div class="body"><b>Breaking news!</b> Dana Holgorsen got into the record books and erased a Husker loss.<br><b>Your mission:</b> find the Nebraska loss (2015–2026, decided by 8 or fewer) that Dana erased. Guess a game: the tiles show how close you are, and each guess unlocks a clue. 6 tries.</div>
+  </div>
+
+  <div id="play">
+    <div class="ask">Which game was it? Search and pick a one-score loss.</div>
+    <div class="picker">
+      <div class="list" id="list" role="listbox"></div>
+      <input id="q" type="text" placeholder="Search a game, like “2021 Iowa”…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search for a game">
+    </div>
+    <button class="go" id="go" type="button" disabled>Crack it!</button>
+    <div class="row2"><div class="left" id="left"></div><button class="give" id="give" type="button">Give up</button></div>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="cols"><div>Year</div><div>Opponent</div><div>Site</div><div>Margin</div><div>NU pts</div></div>
+  <div id="rows"></div>
+
+  <div class="clues" id="clues"></div>
+
+  <div class="stuck footfact"><b>Fun fact:</b> Nebraska's last national title was 1997, and this website would like you to know it's still 1997 in here.<small>Please enjoy this tribute to simpler times.</small></div>
+  <div class="foot">Scores and player stats from ESPN box scores. Fan project, not affiliated with the University of Nebraska.<br><span class="badge">Best viewed in Netscape Navigator 4.0 at 800×600</span></div>
+</div>
+
+<div class="taskbar"><div class="start"><i></i>Start</div><div class="task">One Score Short</div><div class="tray" id="tray"></div></div>
+
+<dialog id="help">
+  <div class="titlebar"><h2>How to play</h2><div class="wbtns"><i>×</i></div></div>
+  <div class="inner">
+    <p>Nebraska lost a game by <b>one score (8 points or fewer)</b> sometime between 2015 and 2026. Find it in 6 guesses. Then play again, as many times as you want.</p>
+    <ul>
+      <li>Pick any one-score loss from the list. The tiles show how close you are.</li>
+      <li><span class="sw" style="background:var(--g)"></span>Green means exact.</li>
+      <li><span class="sw" style="background:var(--y)"></span>Yellow means close (within 2 years, 2 points of margin, or 3 Husker points).</li>
+      <li><span class="sw" style="background:var(--x)"></span>Gray means not close. Arrows point toward the answer.</li>
+      <li>Each guess unlocks a new clue from the box score. Each clue tells you which tile it helps with.</li>
+      <li>Crack it and you go up a win. Run out of guesses (or give up) and it's a loss. Your record and streak are saved on this computer.</li>
+    </ul>
+    <div class="btns"><button type="button" class="primary" id="closeHelp">OK</button></div>
+  </div>
+</dialog>
+<dialog id="statsDlg">
+  <div class="titlebar"><h2>Your record</h2><div class="wbtns"><i>×</i></div></div>
+  <div class="inner"><div id="statsBody"></div><div class="btns"><button type="button" id="resetStats">Reset record</button><button type="button" class="primary" id="closeStats">OK</button></div></div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+// One-score loss = decided by 8 points or fewer. Every Nebraska game 2015–2026 that fits.
+// rank = opponent's AP/CFP rank at kickoff when known; ot = went to overtime; trophy = rivalry trophy game.
+const SEASONS = {
+  2015: { rec: "6–7",  coach: "Mike Riley, year 1" },
+  2016: { rec: "9–4",  coach: "Mike Riley, year 2" },
+  2017: { rec: "4–8",  coach: "Mike Riley, year 3" },
+  2018: { rec: "4–8",  coach: "Scott Frost, year 1" },
+  2019: { rec: "5–7",  coach: "Scott Frost, year 2" },
+  2020: { rec: "3–5",  coach: "Scott Frost, year 3 (pandemic season)" },
+  2021: { rec: "3–9",  coach: "Scott Frost, year 4" },
+  2022: { rec: "4–8",  coach: "Scott Frost, then Mickey Joseph (interim)" },
+  2023: { rec: "5–7",  coach: "Matt Rhule, year 1" },
+  2024: { rec: "7–6",  coach: "Matt Rhule, year 2" },
+  2025: { rec: "7–6",  coach: "Matt Rhule, year 3" },
+  2026: { rec: "5–4 so far",  coach: "Matt Rhule, year 4" },
+};
+
+const G = (season, date, site, place, opp, nu, them, extra, note, aliases) =>
+  ({ season, date, site, place, opp, nu, them, ...extra, note, aliases });
+
+const GAMES = [
+  G(2015,"Sep 5","home","Memorial Stadium, Lincoln","BYU",28,33,{},"The season opener. Nebraska led 28–27 until a 42-yard touchdown pass on the last play of the game.",["cougars","brigham young"]),
+  G(2015,"Sep 19","away","Hard Rock Stadium, Miami Gardens","Miami",33,36,{ot:true},"Nebraska trailed 33–10 in the fourth quarter, tied it with 33 seconds left on a two-point conversion, then lost on an overtime field goal.",["hurricanes","canes","miami fl","the u"]),
+  G(2015,"Oct 3","away","Memorial Stadium, Champaign","Illinois",13,14,{},"Nebraska led 13–0 in the fourth quarter. A 1-yard touchdown pass with 10 seconds left won it by one point.",["illini","fighting illini"]),
+  G(2015,"Oct 10","home","Memorial Stadium, Lincoln","Wisconsin",21,23,{trophy:true},"Nebraska took a 21–20 lead on a 55-yard run with 3:38 left, then lost on a 46-yard field goal with four seconds left.",["badgers","wisc","uw"]),
+  G(2015,"Oct 24","home","Memorial Stadium, Lincoln","Northwestern",28,30,{},"A 72-yard interception return hurt, and the late two-point try that would have tied it failed.",["wildcats","nu"]),
+  G(2015,"Nov 27","home","Memorial Stadium, Lincoln","Iowa",20,28,{rank:4,trophy:true},"The regular-season finale. Four Nebraska interceptions, one returned for a touchdown.",["hawkeyes"]),
+
+
+  G(2016,"Oct 29","away","Camp Randall Stadium, Madison","Wisconsin",17,23,{rank:11,ot:true,trophy:true},"A Freedom Trophy game that went to overtime on the road.",["badgers","wisc","uw"]),
+
+  G(2017,"Sep 9","away","Autzen Stadium, Eugene","Oregon",35,42,{},"A nonconference road trip to a stadium that gets loud. Nebraska scored 35 and still lost.",["ducks","uo"]),
+  G(2017,"Sep 16","home","Memorial Stadium, Lincoln","Northern Illinois",17,21,{},"A MAC opponent visits Lincoln and sends Nebraska to a second straight defeat.",["niu","huskies","northern illinois huskies"]),
+  G(2017,"Nov 4","home","Memorial Stadium, Lincoln","Northwestern",24,31,{ot:true},"Extra football in Lincoln, and the Huskers came up short.",["wildcats","nu"]),
+
+  G(2018,"Sep 8","home","Memorial Stadium, Lincoln","Colorado",28,33,{},"Scott Frost's first game as head coach. The scheduled opener against Akron had been canceled.",["buffs","buffaloes","cu","colorado buffaloes"]),
+  G(2018,"Sep 15","home","Memorial Stadium, Lincoln","Troy",19,24,{},"Loss number two in what became the worst start in program history.",["trojans"]),
+  G(2018,"Oct 13","away","Ryan Field, Evanston","Northwestern",31,34,{ot:true},"The sixth loss in a row to open the season, decided in overtime.",["wildcats"]),
+  G(2018,"Nov 3","away","Ohio Stadium, Columbus","Ohio State",31,36,{rank:8,},"A 104,245-person crowd watched a ranked home team survive Nebraska's best shot.",["buckeyes","osu","the ohio state university"]),
+  G(2018,"Nov 23","away","Kinnick Stadium, Iowa City","Iowa",28,31,{trophy:true},"The regular-season finale, a day-after-Thanksgiving rivalry trophy game. It ended a 4–8 year.",["hawkeyes"]),
+
+  G(2019,"Sep 7","away","Folsom Field, Boulder","Colorado",31,34,{ot:true},"A Week 2 road trip that needed overtime to settle.",["buffs","buffaloes","cu","colorado buffaloes"]),
+  G(2019,"Oct 26","home","Memorial Stadium, Lincoln","Indiana",31,38,{},"A home loss where Nebraska gave up 38.",["hoosiers","iu"]),
+  G(2019,"Nov 2","away","Ross-Ade Stadium, West Lafayette","Purdue",27,31,{},"A four-point road loss in the Big Ten West.",["boilermakers","boilers"]),
+  G(2019,"Nov 29","home","Memorial Stadium, Lincoln","Iowa",24,27,{rank:17,trophy:true},"The home finale against a ranked rival, lost by a field goal.",["hawkeyes"]),
+
+  G(2020,"Nov 7","away","Ryan Field, Evanston","Northwestern",13,21,{},"A Big Ten Network broadcast in a season that started late.",["wildcats"]),
+  G(2020,"Nov 27","away","Kinnick Stadium, Iowa City","Iowa",20,26,{rank:24,trophy:true},"Only 1,469 fans were allowed in to watch.",["hawkeyes"]),
+  G(2020,"Dec 12","home","Memorial Stadium, Lincoln","Minnesota",17,24,{trophy:true},"A game for a $5 trophy named for pieces of a broken chair.",["gophers","golden gophers"]),
+
+  G(2021,"Aug 28","away","Memorial Stadium, Champaign","Illinois",22,30,{},"The season opener. Originally scheduled for Dublin, Ireland, it moved back to the U.S. over COVID travel concerns.",["illini","fighting illini"]),
+  G(2021,"Sep 18","away","Oklahoma Memorial Stadium, Norman","Oklahoma",16,23,{rank:3},"A renewed rivalry in front of 84,659 people.",["sooners","ou"]),
+  G(2021,"Sep 25","away","Spartan Stadium, East Lansing","Michigan State",20,23,{rank:20,ot:true},"A ranked road team, a tie game, and extra time.",["spartans","msu","sparty","michigan st"]),
+  G(2021,"Oct 9","home","Memorial Stadium, Lincoln","Michigan",29,32,{rank:9},"A Saturday-night ABC game that Nebraska had in its hands.",["wolverines","um","umich"]),
+  G(2021,"Oct 16","away","Huntington Bank Stadium, Minneapolis","Minnesota",23,30,{trophy:true},"A trophy game on the road. Seven points the wrong way.",["gophers","golden gophers"]),
+  G(2021,"Oct 30","home","Memorial Stadium, Lincoln","Purdue",23,28,{},"An ESPN2 home game, one of nine losses that year.",["boilermakers","boilers"]),
+  G(2021,"Nov 20","away","Camp Randall Stadium, Madison","Wisconsin",28,35,{rank:15,trophy:true},"A Freedom Trophy game on the road against a ranked team.",["badgers","wisc","uw"]),
+  G(2021,"Nov 26","home","Memorial Stadium, Lincoln","Iowa",21,28,{rank:16,trophy:true},"The finale: a ninth loss, all nine by single digits, a first in Division I history.",["hawkeyes"]),
+
+  G(2022,"Aug 27","neutral","Aviva Stadium, Dublin, Ireland","Northwestern",28,31,{},"Week 0 across the Atlantic. Evan Hull scored with 11:34 left to put the other team on top for good.",["wildcats","nu"]),
+  G(2022,"Sep 10","home","Memorial Stadium, Lincoln","Georgia Southern",42,45,{},"Nebraska led 42–38, then gave up a touchdown with 36 seconds left. Scott Frost was fired the next day.",["eagles","gsu","ga southern","georgia southern eagles"]),
+  G(2022,"Oct 15","away","Ross-Ade Stadium, West Lafayette","Purdue",37,43,{},"Trey Palmer caught 7 passes for 237 yards and 2 touchdowns, and Nebraska still lost.",["boilermakers","boilers"]),
+  G(2022,"Nov 5","home","Memorial Stadium, Lincoln","Minnesota",13,20,{trophy:true},"Nebraska led 10–0 early, then Mohamed Ibrahim ran for 128 yards and 2 touchdowns.",["gophers","golden gophers"]),
+  G(2022,"Nov 19","home","Memorial Stadium, Lincoln","Wisconsin",14,15,{trophy:true},"Nebraska led 14–9 until a 1-yard touchdown with 35 seconds left. Lost by one.",["badgers","wisc","uw"]),
+
+  G(2023,"Aug 31","away","Huntington Bank Stadium, Minneapolis","Minnesota",10,13,{trophy:true},"Matt Rhule's debut. Jeff Sims threw three interceptions and the home team scored 10 in the fourth.",["gophers","golden gophers"]),
+  G(2023,"Nov 4","away","Spartan Stadium, East Lansing","Michigan State",17,20,{},"One of four 3-point losses in the season.",["spartans","msu","sparty","michigan st"]),
+  G(2023,"Nov 11","home","Memorial Stadium, Lincoln","Maryland",10,13,{},"Another 3-point loss, this one at home, with Nebraska's bowl hopes fading.",["terps","terrapins","maryland terrapins"]),
+  G(2023,"Nov 18","away","Camp Randall Stadium, Madison","Wisconsin",17,24,{ot:true,trophy:true},"A trip to Madison that needed extra time.",["badgers","wisc","uw"]),
+  G(2023,"Nov 24","home","Memorial Stadium, Lincoln","Iowa",10,13,{rank:17,trophy:true},"The finale: a fourth 3-point loss, and a 5–7 year.",["hawkeyes"]),
+
+  G(2024,"Sep 20","home","Memorial Stadium, Lincoln","Illinois",24,31,{rank:24,ot:true},"Nebraska led 24–17 in the fourth quarter, then lost on a 4-yard pass in overtime.",["illini","fighting illini"]),
+  G(2024,"Oct 26","away","Ohio Stadium, Columbus","Ohio State",17,21,{rank:4},"Nebraska led 17–14 before a 9-yard touchdown with 6:04 left decided it.",["buckeyes","osu","the ohio state university"]),
+  G(2024,"Nov 2","home","Memorial Stadium, Lincoln","UCLA",20,27,{},"Down 27–7, Nebraska cut it to 27–20 late, but the extra point was missed.",["bruins"]),
+  G(2024,"Nov 16","away","Los Angeles Memorial Coliseum","USC",20,28,{},"A 2-yard quarterback run with 2:45 left set the final margin.",["trojans","southern cal","southern california"]),
+  G(2024,"Nov 29","away","Kinnick Stadium, Iowa City","Iowa",10,13,{trophy:true},"The regular-season finale. Another 3-point loss.",["hawkeyes"]),
+
+  G(2025,"Sep 20","home","Memorial Stadium, Lincoln","Michigan",27,30,{rank:21},"A 75-yard touchdown run in the second quarter was the difference.",["wolverines","um","umich"]),
+  G(2025,"Nov 1","home","Memorial Stadium, Lincoln","USC",17,21,{rank:23},"Nebraska led 17–14 until a 6-yard touchdown run with about 10 minutes left.",["trojans","southern cal","southern california"]),
+
+  G(2026,"Oct 10","home","Memorial Stadium, Lincoln","Indiana",17,20,{rank:7},"Nebraska led 17–6 in the fourth quarter. Two long touchdown passes (75 and 44 yards) to the same receiver flipped it.",["hoosiers","iu"]),
+  G(2026,"Oct 18","away","Autzen Stadium, Eugene","Oregon",14,17,{},"Nebraska led 14–9 until a 4-yard touchdown pass with 28 seconds left, thrown by a former Nebraska quarterback.",["ducks","uo"]),
+  G(2026,"Nov 1","home","Memorial Stadium, Lincoln","Washington",10,17,{},"Three Nebraska interceptions. The last was returned 48 yards for a touchdown with 1:15 left.",["huskies","uw","udub"]),
+];
+
+
+
+
+const STATS = {
+"2016|Wisconsin": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "12/31 passing, 153 yds, 0 TD, 2 INT"
+},
+"rush": {
+"name": "Terrell Newby",
+"line": "17 carries, 77 yds, 0 TD"
+},
+"rec": {
+"name": "Jordan Westerkamp",
+"line": "3 catches, 62 yds, 0 TD"
+},
+"team": "305 total yards (152 rushing, 153 passing) · 2 turnovers · 9-18 on third down"
+},
+"2017|Oregon": {
+"qb": {
+"name": "Tanner Lee",
+"line": "19/41 passing, 252 yds, 3 TD, 4 INT"
+},
+"rush": {
+"name": "Tre Bryant",
+"line": "20 carries, 107 yds, 1 TD"
+},
+"rec": {
+"name": "Stanley Morgan Jr.",
+"line": "7 catches, 103 yds, 2 TD"
+},
+"team": "361 total yards (109 rushing, 252 passing) · 4 turnovers · 2-14 on third down"
+},
+"2017|Northern Illinois": {
+"qb": {
+"name": "Tanner Lee",
+"line": "25/47 passing, 299 yds, 0 TD, 3 INT"
+},
+"rush": {
+"name": "Mikale Wilbon",
+"line": "24 carries, 90 yds, 0 TD"
+},
+"rec": {
+"name": "De'Mornay Pierson-El",
+"line": "8 catches, 101 yds, 0 TD"
+},
+"team": "384 total yards (85 rushing, 299 passing) · 3 turnovers · 6-19 on third down"
+},
+"2017|Northwestern": {
+"qb": {
+"name": "Tanner Lee",
+"line": "21/38 passing, 225 yds, 2 TD, 3 INT"
+},
+"rush": {
+"name": "Devine Ozigbo",
+"line": "23 carries, 72 yds, 0 TD"
+},
+"rec": {
+"name": "JD Spielman",
+"line": "3 catches, 48 yds, 0 TD"
+},
+"team": "337 total yards (112 rushing, 225 passing) · 3 turnovers · 5-15 on third down"
+},
+"2018|Colorado": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "15/20 passing, 187 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Adrian Martinez",
+"line": "15 carries, 117 yds, 2 TD"
+},
+"rec": {
+"name": "Stanley Morgan Jr.",
+"line": "5 catches, 75 yds, 0 TD"
+},
+"team": "565 total yards (329 rushing, 236 passing) · 3 turnovers · 5-13 on third down"
+},
+"2018|Troy": {
+"qb": {
+"name": "Andrew Bunch",
+"line": "19/27 passing, 177 yds, 2 TD, 2 INT"
+},
+"rush": {
+"name": "Maurice Washington",
+"line": "14 carries, 92 yds, 0 TD"
+},
+"rec": {
+"name": "Stanley Morgan Jr.",
+"line": "5 catches, 64 yds, 1 TD"
+},
+"team": "364 total yards (187 rushing, 177 passing) · 3 turnovers · 5-16 on third down"
+},
+"2018|Northwestern": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "25/35 passing, 251 yds, 1 TD, 2 INT"
+},
+"rush": {
+"name": "Devine Ozigbo",
+"line": "22 carries, 159 yds, 2 TD"
+},
+"rec": {
+"name": "JD Spielman",
+"line": "8 catches, 76 yds, 1 TD"
+},
+"team": "482 total yards (231 rushing, 251 passing) · 3 turnovers · 7-16 on third down"
+},
+"2018|Ohio State": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "22/33 passing, 266 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Devine Ozigbo",
+"line": "20 carries, 86 yds, 1 TD"
+},
+"rec": {
+"name": "Stanley Morgan Jr.",
+"line": "7 catches, 87 yds, 0 TD"
+},
+"team": "450 total yards (184 rushing, 266 passing) · 1 turnover · 4-14 on third down"
+},
+"2018|Iowa": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "26/38 passing, 260 yds, 2 TD, 1 INT"
+},
+"rush": {
+"name": "Adrian Martinez",
+"line": "17 carries, 76 yds, 1 TD"
+},
+"rec": {
+"name": "Maurice Washington",
+"line": "7 catches, 102 yds, 1 TD"
+},
+"team": "400 total yards (140 rushing, 260 passing) · 1 turnover · 6-15 on third down"
+},
+"2019|Colorado": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "16/26 passing, 290 yds, 2 TD, 1 INT"
+},
+"rush": {
+"name": "Maurice Washington",
+"line": "15 carries, 77 yds, 0 TD"
+},
+"rec": {
+"name": "Maurice Washington",
+"line": "4 catches, 118 yds, 1 TD"
+},
+"team": "469 total yards (179 rushing, 290 passing) · 3 turnovers · 5-15 on third down"
+},
+"2019|Indiana": {
+"qb": {
+"name": "Noah Vedral",
+"line": "14/16 passing, 201 yds, 0 TD, 0 INT"
+},
+"rush": {
+"name": "Wan'Dale Robinson",
+"line": "22 carries, 83 yds, 1 TD"
+},
+"rec": {
+"name": "JD Spielman",
+"line": "5 catches, 97 yds, 0 TD"
+},
+"team": "514 total yards (220 rushing, 294 passing) · 2 turnovers · 6-13 on third down"
+},
+"2019|Purdue": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "22/39 passing, 247 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Adrian Martinez",
+"line": "12 carries, 58 yds, 2 TD"
+},
+"rec": {
+"name": "JD Spielman",
+"line": "6 catches, 123 yds, 0 TD"
+},
+"team": "375 total yards (128 rushing, 247 passing) · 1 turnover · 6-16 on third down"
+},
+"2019|Iowa": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "10/18 passing, 50 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Dedrick Mills",
+"line": "24 carries, 94 yds, 0 TD"
+},
+"rec": {
+"name": "JD Spielman",
+"line": "3 catches, 34 yds, 1 TD"
+},
+"team": "284 total yards (184 rushing, 100 passing) · 2 turnovers · 8-21 on third down"
+},
+"2020|Northwestern": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "12/27 passing, 125 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Adrian Martinez",
+"line": "13 carries, 102 yds, 0 TD"
+},
+"rec": {
+"name": "Marcus Fleming",
+"line": "5 catches, 75 yds, 0 TD"
+},
+"team": "442 total yards (224 rushing, 218 passing) · 2 turnovers · 4-16 on third down"
+},
+"2020|Iowa": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "18/20 passing, 174 yds, 0 TD, 0 INT"
+},
+"rush": {
+"name": "Luke McCaffrey",
+"line": "5 carries, 42 yds, 0 TD"
+},
+"rec": {
+"name": "Wan'Dale Robinson",
+"line": "9 catches, 75 yds, 0 TD"
+},
+"team": "338 total yards (143 rushing, 195 passing) · 2 turnovers · 4-12 on third down"
+},
+"2020|Minnesota": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "16/27 passing, 111 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Adrian Martinez",
+"line": "15 carries, 96 yds, 1 TD"
+},
+"rec": {
+"name": "Wan'Dale Robinson",
+"line": "6 catches, 41 yds, 0 TD"
+},
+"team": "308 total yards (197 rushing, 111 passing) · 2 turnovers · 4-13 on third down"
+},
+"2021|Illinois": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "16/32 passing, 232 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Adrian Martinez",
+"line": "17 carries, 111 yds, 1 TD"
+},
+"rec": {
+"name": "Oliver Martin",
+"line": "6 catches, 103 yds, 1 TD"
+},
+"team": "392 total yards (160 rushing, 232 passing) · 1 turnover · 5-14 on third down"
+},
+"2021|Oklahoma": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "19/25 passing, 289 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Rahmir Johnson",
+"line": "11 carry, 42 yds, 0 TD"
+},
+"rec": {
+"name": "Zavier Betts",
+"line": "3 catches, 61 yds, 0 TD"
+},
+"team": "384 total yards (95 rushing, 289 passing) · 1 turnover · 6-14 on third down"
+},
+"2021|Michigan State": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "24/34 passing, 244 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Rahmir Johnson",
+"line": "19 carries, 76 yds, 0 TD"
+},
+"rec": {
+"name": "Zavier Betts",
+"line": "5 catches, 62 yds, 0 TD"
+},
+"team": "442 total yards (194 rushing, 248 passing) · 2 turnovers · 7-20 on third down"
+},
+"2021|Michigan": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "18/28 passing, 291 yds, 3 TD, 1 INT"
+},
+"rush": {
+"name": "Rahmir Johnson",
+"line": "17 carries, 67 yds, 0 TD"
+},
+"rec": {
+"name": "Rahmir Johnson",
+"line": "6 catches, 105 yds, 1 TD"
+},
+"team": "431 total yards (140 rushing, 291 passing) · 2 turnovers · 3-11 on third down"
+},
+"2021|Minnesota": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "18/33 passing, 241 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Rahmir Johnson",
+"line": "11 carry, 83 yds, 2 TD"
+},
+"rec": {
+"name": "Austin Allen",
+"line": "5 catches, 121 yds, 1 TD"
+},
+"team": "377 total yards (136 rushing, 241 passing) · 0 turnovers · 4-12 on third down"
+},
+"2021|Purdue": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "14/29 passing, 269 yds, 2 TD, 4 INT"
+},
+"rush": {
+"name": "Jaquez Yant",
+"line": "6 carries, 60 yds, 0 TD"
+},
+"rec": {
+"name": "Omar Manning",
+"line": "4 catches, 75 yds, 1 TD"
+},
+"team": "399 total yards (130 rushing, 269 passing) · 4 turnovers · 4-10 on third down"
+},
+"2021|Wisconsin": {
+"qb": {
+"name": "Adrian Martinez",
+"line": "23/35 passing, 351 yds, 1 TD, 2 INT"
+},
+"rush": {
+"name": "Brody Belt",
+"line": "7 carries, 31 yds, 0 TD"
+},
+"rec": {
+"name": "Austin Allen",
+"line": "7 catches, 143 yds, 0 TD"
+},
+"team": "452 total yards (101 rushing, 351 passing) · 2 turnovers · 4-9 on third down"
+},
+"2021|Iowa": {
+"qb": {
+"name": "Logan Smothers",
+"line": "16/22 passing, 198 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Logan Smothers",
+"line": "24 carries, 64 yds, 2 TD"
+},
+"rec": {
+"name": "Samori Toure",
+"line": "6 catches, 67 yds, 0 TD"
+},
+"team": "327 total yards (129 rushing, 198 passing) · 2 turnovers · 5-13 on third down"
+},
+"2022|Northwestern": {
+"qb": {
+"name": "Casey Thompson",
+"line": "25/42 passing, 355 yds, 1 TD, 2 INT"
+},
+"rush": {
+"name": "Anthony Grant",
+"line": "19 carries, 101 yds, 2 TD"
+},
+"rec": {
+"name": "Isaiah Garcia-Castaneda",
+"line": "4 catches, 120 yds, 1 TD"
+},
+"team": "465 total yards (110 rushing, 355 passing) · 3 turnovers · 9-16 on third down"
+},
+"2022|Georgia Southern": {
+"qb": {
+"name": "Casey Thompson",
+"line": "23/34 passing, 318 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Anthony Grant",
+"line": "27 carries, 138 yds, 1 TD"
+},
+"rec": {
+"name": "Marcus Washington",
+"line": "6 catches, 123 yds, 0 TD"
+},
+"team": "575 total yards (257 rushing, 318 passing) · 0 turnovers · 9-13 on third down"
+},
+"2022|Purdue": {
+"qb": {
+"name": "Casey Thompson",
+"line": "16/29 passing, 354 yds, 2 TD, 2 INT"
+},
+"rush": {
+"name": "Trey Palmer",
+"line": "1 carry, 60 yds, 0 TD"
+},
+"rec": {
+"name": "Trey Palmer",
+"line": "7 catches, 237 yds, 2 TD"
+},
+"team": "476 total yards (122 rushing, 354 passing) · 2 turnovers · 3-9 on third down"
+},
+"2022|Minnesota": {
+"qb": {
+"name": "Logan Smothers",
+"line": "5/9 passing, 80 yds, 0 TD, 0 INT"
+},
+"rush": {
+"name": "Anthony Grant",
+"line": "21 carry, 115 yds, 0 TD"
+},
+"rec": {
+"name": "Marcus Washington",
+"line": "2 catches, 63 yds, 0 TD"
+},
+"team": "267 total yards (146 rushing, 121 passing) · 1 turnover · 5-16 on third down"
+},
+"2022|Wisconsin": {
+"qb": {
+"name": "Casey Thompson",
+"line": "12/20 passing, 106 yds, 2 TD, 0 INT"
+},
+"rush": {
+"name": "Casey Thompson",
+"line": "11 carry, 33 yds, 0 TD"
+},
+"rec": {
+"name": "Trey Palmer",
+"line": "4 catches, 47 yds, 2 TD"
+},
+"team": "171 total yards (65 rushing, 106 passing) · 0 turnovers · 5-11 on third down"
+},
+"2023|Minnesota": {
+"qb": {
+"name": "Jeff Sims",
+"line": "11/19 passing, 114 yds, 1 TD, 3 INT"
+},
+"rush": {
+"name": "Jeff Sims",
+"line": "19 carries, 91 yds, 0 TD"
+},
+"rec": {
+"name": "Alex Bullock",
+"line": "3 catches, 56 yds, 1 TD"
+},
+"team": "295 total yards (181 rushing, 114 passing) · 4 turnovers · 5-11 on third down"
+},
+"2023|Michigan State": {
+"qb": {
+"name": "Heinrich Haarberg",
+"line": "12/28 passing, 129 yds, 0 TD, 2 INT"
+},
+"rush": {
+"name": "Emmett Johnson",
+"line": "13 carries, 57 yds, 1 TD"
+},
+"rec": {
+"name": "Thomas Fidone II",
+"line": "3 catches, 43 yds, 0 TD"
+},
+"team": "277 total yards (148 rushing, 129 passing) · 3 turnovers · 5-15 on third down"
+},
+"2023|Maryland": {
+"qb": {
+"name": "Jeff Sims",
+"line": "8/13 passing, 62 yds, 0 TD, 2 INT"
+},
+"rush": {
+"name": "Emmett Johnson",
+"line": "17 carries, 84 yds, 0 TD"
+},
+"rec": {
+"name": "Billy Kemp IV",
+"line": "2 catches, 30 yds, 0 TD"
+},
+"team": "269 total yards (183 rushing, 86 passing) · 5 turnovers · 2-9 on third down"
+},
+"2023|Wisconsin": {
+"qb": {
+"name": "Chubba Purdy",
+"line": "15/24 passing, 169 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Chubba Purdy",
+"line": "14 carries, 105 yds, 1 TD"
+},
+"rec": {
+"name": "Jaylen Lloyd",
+"line": "1 catch, 58 yds, 1 TD"
+},
+"team": "364 total yards (195 rushing, 169 passing) · 1 turnover · 5-13 on third down"
+},
+"2023|Iowa": {
+"qb": {
+"name": "Chubba Purdy",
+"line": "15/28 passing, 189 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Chubba Purdy",
+"line": "12 carries, 42 yds, 0 TD"
+},
+"rec": {
+"name": "Jaylen Lloyd",
+"line": "1 catch, 66 yds, 1 TD"
+},
+"team": "264 total yards (75 rushing, 189 passing) · 3 turnovers · 8-17 on third down"
+},
+"2024|Illinois": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "24/35 passing, 297 yds, 3 TD, 1 INT"
+},
+"rush": {
+"name": "Dante Dowdell",
+"line": "20 carries, 72 yds, 0 TD"
+},
+"rec": {
+"name": "Jahmal Banks",
+"line": "8 catches, 94 yds, 0 TD"
+},
+"team": "345 total yards (48 rushing, 297 passing) · 1 turnover · 8-15 on third down"
+},
+"2024|Ohio State": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "21/32 passing, 152 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Dante Dowdell",
+"line": "14 carries, 60 yds, 1 TD"
+},
+"rec": {
+"name": "Thomas Fidone II",
+"line": "4 catches, 55 yds, 0 TD"
+},
+"team": "273 total yards (121 rushing, 152 passing) · 1 turnover · 5-16 on third down"
+},
+"2024|UCLA": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "14/27 passing, 177 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Dante Dowdell",
+"line": "17 carries, 61 yds, 2 TD"
+},
+"rec": {
+"name": "Isaiah Neyor",
+"line": "4 catches, 89 yds, 1 TD"
+},
+"team": "322 total yards (113 rushing, 209 passing) · 2 turnovers · 9-17 on third down"
+},
+"2024|USC": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "27/38 passing, 191 yds, 1 TD, 2 INT"
+},
+"rush": {
+"name": "Emmett Johnson",
+"line": "10 carries, 55 yds, 0 TD"
+},
+"rec": {
+"name": "Jahmal Banks",
+"line": "5 catches, 55 yds, 0 TD"
+},
+"team": "310 total yards (119 rushing, 191 passing) · 2 turnovers · 5-13 on third down"
+},
+"2024|Iowa": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "22/32 passing, 190 yds, 0 TD, 0 INT"
+},
+"rush": {
+"name": "Emmett Johnson",
+"line": "18 carries, 71 yds, 0 TD"
+},
+"rec": {
+"name": "Jahmal Banks",
+"line": "4 catches, 41 yds, 0 TD"
+},
+"team": "334 total yards (144 rushing, 190 passing) · 2 turnovers · 8-17 on third down"
+},
+"2025|Michigan": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "30/41 passing, 308 yds, 3 TD, 1 INT"
+},
+"rush": {
+"name": "Emmett Johnson",
+"line": "19 carries, 65 yds, 0 TD"
+},
+"rec": {
+"name": "Jacory Barney Jr.",
+"line": "6 catches, 120 yds, 2 TD"
+},
+"team": "351 total yards (43 rushing, 308 passing) · 1 turnover · 2-12 on third down"
+},
+"2025|USC": {
+"qb": {
+"name": "Dylan Raiola",
+"line": "10/15 passing, 91 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Emmett Johnson",
+"line": "29 carries, 165 yds, 1 TD"
+},
+"rec": {
+"name": "Nyziah Hunter",
+"line": "5 catches, 30 yds, 0 TD"
+},
+"team": "286 total yards (188 rushing, 98 passing) · 1 turnover · 5-12 on third down"
+},
+"2015|BYU": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "24/41 passing, 319 yds, 3 TD, 1 INT"
+},
+"rush": {
+"name": "Terrell Newby",
+"line": "10 carries, 43 yds, 1 TD"
+},
+"rec": {
+"name": "Jordan Westerkamp",
+"line": "7 catches, 107 yds, 1 TD"
+},
+"team": "445 total yards (126 rushing, 319 passing) · 2 turnovers · 6-14 on third down"
+},
+"2015|Miami": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "21/45 passing, 309 yds, 4 TD, 3 INT"
+},
+"rush": {
+"name": "Terrell Newby",
+"line": "14 carries, 82 yds, 0 TD"
+},
+"rec": {
+"name": "Jordan Westerkamp",
+"line": "5 catches, 95 yds, 1 TD"
+},
+"team": "462 total yards (153 rushing, 309 passing) · 3 turnovers · 6-15 on third down"
+},
+"2015|Illinois": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "10/31 passing, 105 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Devine Ozigbo",
+"line": "7 carries, 70 yds, 1 TD"
+},
+"rec": {
+"name": "Cethan Carter",
+"line": "3 catches, 63 yds, 0 TD"
+},
+"team": "292 total yards (187 rushing, 105 passing) · 2 turnovers · 4-17 on third down"
+},
+"2015|Wisconsin": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "11/28 passing, 129 yds, 1 TD, 0 INT"
+},
+"rush": {
+"name": "Andy Janovich",
+"line": "3 carries, 59 yds, 1 TD"
+},
+"rec": {
+"name": "Alonzo Moore",
+"line": "1 catch, 41 yds, 1 TD"
+},
+"team": "325 total yards (196 rushing, 129 passing) · 1 turnover · 8-18 on third down"
+},
+"2015|Northwestern": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "24/48 passing, 291 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Terrell Newby",
+"line": "16 carries, 52 yds, 0 TD"
+},
+"rec": {
+"name": "Jordan Westerkamp",
+"line": "5 catches, 92 yds, 0 TD"
+},
+"team": "373 total yards (82 rushing, 291 passing) · 1 turnover · 9-20 on third down"
+},
+"2015|Iowa": {
+"qb": {
+"name": "Tommy Armstrong Jr.",
+"line": "25/45 passing, 296 yds, 0 TD, 4 INT"
+},
+"rush": {
+"name": "Imani Cross",
+"line": "19 carries, 55 yds, 2 TD"
+},
+"rec": {
+"name": "Cethan Carter",
+"line": "4 catches, 76 yds, 0 TD"
+},
+"team": "433 total yards (137 rushing, 296 passing) · 4 turnovers · 7-16 on third down"
+},
+"2026|Indiana": {
+"qb": {
+"name": "Anthony Colandrea",
+"line": "25/43 passing, 264 yds, 0 TD, 1 INT"
+},
+"rush": {
+"name": "Jamal Rule",
+"line": "15 carries, 53 yds, 0 TD"
+},
+"rec": {
+"name": "Jacory Barney Jr.",
+"line": "9 catches, 108 yds, 0 TD"
+},
+"team": "392 total yards (128 rushing, 264 passing) · 1 turnover · 10-19 on third down"
+},
+"2026|Oregon": {
+"qb": {
+"name": "Anthony Colandrea",
+"line": "18/33 passing, 164 yds, 1 TD, 1 INT"
+},
+"rush": {
+"name": "Anthony Colandrea",
+"line": "13 carries, 38 yds, 1 TD"
+},
+"rec": {
+"name": "Kwazi Gilmer",
+"line": "6 catches, 74 yds, 1 TD"
+},
+"team": "242 total yards (78 rushing, 164 passing) · 1 turnover · 7-17 on third down"
+},
+"2026|Washington": {
+"qb": {
+"name": "Anthony Colandrea",
+"line": "24/44 passing, 255 yds, 1 TD, 3 INT"
+},
+"rush": {
+"name": "Jamal Rule",
+"line": "13 carries, 72 yds, 0 TD"
+},
+"rec": {
+"name": "Jacory Barney Jr.",
+"line": "6 catches, 65 yds, 0 TD"
+},
+"team": "387 total yards (132 rushing, 255 passing) · 3 turnovers · 6-13 on third down"
+}
+};
+
+
+
+const MAX_GUESSES = 6;
+const $ = id => document.getElementById(id);
+const norm = s => s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+
+const label = g => `${g.season} · ${g.opp}`;
+const key = g => `${g.season}|${g.opp}`;
+const margin = g => g.them - g.nu;
+const ALL = GAMES.slice().sort((a, b) => b.season - a.season || a.opp.localeCompare(b.opp));
+const byKey = k => GAMES.find(x => key(x) === k);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ---- storage (best effort) ----
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+
+// ---- run state: record, streak, and the game in progress ----
+const blankRun = () => ({ w: 0, l: 0, streak: 0, best: 0, dist: [0, 0, 0, 0, 0, 0], seen: [], cur: null });
+let run = Object.assign(blankRun(), store.get("oss:run", {}));
+const saveRun = () => store.set("oss:run", run);
+
+let target, guesses, done, won, picked = null, hl = -1;
+
+function newGame() {
+  let pool = GAMES.filter(g => !run.seen.includes(key(g)));
+  if (!pool.length) { run.seen = []; pool = GAMES; }
+  target = pool[Math.floor(Math.random() * pool.length)];
+  guesses = []; done = false; won = false;
+  run.seen.push(key(target));
+  run.cur = { k: key(target), guesses, done: false };
+  saveRun();
+  picked = null; $("q").value = "";
+  render(false);
+  window.scrollTo(0, 0);
+}
+
+function resume() {
+  const c = run.cur && byKey(run.cur.k);
+  if (!c) { newGame(); return; }
+  target = c; guesses = run.cur.guesses || []; done = !!run.cur.done;
+  won = guesses.includes(key(target));
+  render(false);
+}
+
+function finishGame() {
+  if (won) { run.w++; run.streak++; run.best = Math.max(run.best, run.streak); run.dist[guesses.length - 1]++; }
+  else { run.l++; run.streak = 0; }
+  run.cur.done = true;
+  saveRun();
+}
+
+// ---- feedback ----
+const arrow = (guess, answer) => guess < answer ? "▲" : "▼";
+function feedback(g) {
+  const t = target;
+  const yr = g.season === t.season ? ["g", g.season, ""] : [Math.abs(g.season - t.season) <= 2 ? "y" : "x", g.season, arrow(g.season, t.season)];
+  const opp = [g.opp === t.opp ? "g" : "x", g.opp, ""];
+  const site = [g.site === t.site ? "g" : "x", g.site === "home" ? "Home" : g.site === "away" ? "Away" : "Neutral", ""];
+  const mg = margin(g), mt = margin(t);
+  const m = [mg === mt ? "g" : Math.abs(mg - mt) <= 2 ? "y" : "x", mg, mg === mt ? "" : arrow(mg, mt)];
+  const n = [g.nu === t.nu ? "g" : Math.abs(g.nu - t.nu) <= 3 ? "y" : "x", g.nu, g.nu === t.nu ? "" : arrow(g.nu, t.nu)];
+  return [yr, opp, site, m, n];
+}
+function tileHTML(f, flip, i) {
+  return `<div class="tile ${f[0]}${flip ? " flip" : ""}" style="${flip ? `animation-delay:${i * 0.1}s` : ""}">${f[1]}${f[2] ? `<span class="arr">${f[2]}</span>` : ""}</div>`;
+}
+
+// ---- clues ----
+// Unlocks after guess N. `help` says which tile the clue is meant to narrow down.
+function clues() {
+  const n = guesses.length, t = target, st = STATS[key(t)];
+  const out = [];
+  const bar = (title, help) => `<div class="top"><h3>${title}</h3>${help ? `<span class="help">Helps: ${help}</span>` : ""}</div>`;
+  const add = (at, title, help, body) => out.push(n >= at || done
+    ? `<div class="clue">${bar(title, help)}${body}</div>`
+    : `<div class="clue locked">${bar(title, "")}<p>Locked. Unlocks after guess ${at}.</p></div>`);
+
+  add(0, "Clue 1 - Nebraska's day at the office", "NU pts · Margin",
+    `<p>${esc(st.team)}.</p>`);
+  add(1, "Clue 2 - Who was at quarterback", "Year",
+    `<p><span class="who">${esc(st.qb.name)}</span> went ${esc(st.qb.line)}.</p>`);
+  add(2, "Clue 3 - Husker playmakers", "Year · NU pts",
+    `<p><span class="who">${esc(st.rush.name)}</span> led the rushing: ${esc(st.rush.line)}.</p><p><span class="who">${esc(st.rec.name)}</span> led the receiving: ${esc(st.rec.line)}.</p>`);
+  const rank = t.rank ? `The other team was ranked No. ${t.rank}.` : "The other team was not ranked (or we can't confirm a ranking).";
+  const story = t.note.replace(new RegExp(t.opp, "g"), "█████");
+  add(3, "Clue 4 - The other sideline", "Opponent",
+    `<p>${rank} ${t.ot ? "It went to overtime." : "It ended in regulation."}${t.trophy ? " A rivalry trophy was on the line." : ""}</p><p>${esc(story)}</p>`);
+  add(4, "Clue 5 - Date and place", "Opponent · Site",
+    `<p>${esc(t.date)} · ${esc(t.place)}</p>`);
+  $("clues").innerHTML = out.join("");
+}
+
+// ---- render ----
+function render(animateLast) {
+  const rec = `${run.w}–${run.l}`;
+  $("tag").innerHTML = `<span>Record ${rec}</span><span>Streak ${run.streak}</span>`;
+  $("tray").textContent = `${rec} · streak ${run.streak}`;
+  clues();
+  let html = "";
+  guesses.forEach((k, r) => {
+    const flip = animateLast && r === guesses.length - 1;
+    html += `<div class="row">${feedback(byKey(k)).map((f, i) => tileHTML(f, flip, i)).join("")}</div>`;
+  });
+  for (let r = guesses.length; r < Math.min(guesses.length + 1, MAX_GUESSES) && !done; r++) html += `<div class="row">${'<div class="tile">&nbsp;</div>'.repeat(5)}</div>`;
+  $("rows").innerHTML = html;
+  $("play").style.display = done ? "none" : "";
+  const left = MAX_GUESSES - guesses.length;
+  $("left").textContent = `${left} guess${left === 1 ? "" : "es"} left`;
+  $("go").disabled = !picked;
+  $("result").innerHTML = done ? resultHTML() : "";
+  if (done) wireResult();
+}
+
+function shareText() {
+  const sq = { g: "🟩", y: "🟨", x: "⬜" };
+  const grid = guesses.map(k => feedback(byKey(k)).map(f => sq[f[0]]).join("")).join("\n");
+  return `One Score Short ${won ? guesses.length : "X"}/${MAX_GUESSES}\nRecord ${run.w}–${run.l} · streak ${run.streak}\n\n${grid}`;
+}
+
+function resultHTML() {
+  const t = target, st = STATS[key(t)];
+  const where = t.site === "home" ? "Lincoln" : t.site === "away" ? `at ${t.opp}` : "neutral site";
+  const head = won ? (guesses.length === 1 ? "First try! Unreal." : "Record restored!") : "Dana got away with it";
+  return `<div class="result${won ? "" : " lost"}">
+    <div class="titlebar"><h2>${head}</h2><div class="wbtns"><i>_</i><i>□</i><i>×</i></div></div>
+    <div class="inner">
+      <div class="score">${esc(t.opp)} ${t.them}, Nebraska ${t.nu}${t.ot ? " (OT)" : ""}</div>
+      <p><b>${esc(t.date)}, ${t.season}</b> · ${where}<br>${esc(t.place)}</p>
+      <p>${esc(t.note)}</p>
+      <p style="color:var(--muted);font-size:13px">${esc(st.qb.name)}: ${esc(st.qb.line)}. ${esc(st.rush.name)}: ${esc(st.rush.line)}. ${esc(st.rec.name)}: ${esc(st.rec.line)}.</p>
+      <p><b>Record: ${run.w}–${run.l}</b> · Streak: ${run.streak}</p>
+      <div class="btns">
+        <button type="button" class="primary" id="again">Next game</button>
+        <button type="button" id="share">Share result</button>
+      </div>
+    </div>
+  </div>`;
+}
+function wireResult() {
+  $("share").onclick = () => {
+    const text = shareText();
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast("Copied to clipboard"), () => toast("Couldn't copy"));
+    else toast("Couldn't copy");
+  };
+  $("again").onclick = newGame;
+}
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1600); }
+
+// ---- picker ----
+function options() {
+  const q = norm($("q").value);
+  const used = new Set(guesses);
+  return ALL.filter(g => !used.has(key(g)) && (!q || norm(label(g)).includes(q) || norm(`${g.opp} ${g.season}`).includes(q) || g.aliases.some(a => norm(a).includes(q))));
+}
+function drawList() {
+  const opts = options(), list = $("list");
+  if (!$("q").value.trim() && document.activeElement !== $("q")) { list.classList.remove("open"); return; }
+  list.innerHTML = opts.length ? opts.map((g, i) => `<button type="button" data-k="${key(g)}" class="${i === hl ? "hl" : ""}">${g.opp}<span>${g.season}</span></button>`).join("") : `<div class="none">No matching one-score loss</div>`;
+  list.classList.add("open");
+}
+function choose(k) {
+  picked = k;
+  $("q").value = label(byKey(k));
+  $("list").classList.remove("open");
+  $("go").disabled = false;
+  hl = -1;
+}
+function submit() {
+  if (!picked || done) return;
+  guesses.push(picked);
+  won = picked === key(target);
+  done = won || guesses.length >= MAX_GUESSES;
+  picked = null; $("q").value = "";
+  run.cur.guesses = guesses;
+  if (done) finishGame(); else saveRun();
+  render(true);
+  if (done) $("result").scrollIntoView({ block: "nearest" });
+  if (!won && !done) toast(`New clue unlocked · ${MAX_GUESSES - guesses.length} left`);
+}
+function giveUp() {
+  if (done) return;
+  done = true; won = false;
+  finishGame();
+  render(false);
+}
+
+$("q").addEventListener("input", () => { picked = null; $("go").disabled = true; hl = -1; drawList(); });
+$("q").addEventListener("focus", () => { if ($("q").value) $("q").select(); drawList(); });
+$("q").addEventListener("keydown", e => {
+  const opts = options();
+  if (e.key === "ArrowDown") { hl = Math.min(hl + 1, opts.length - 1); drawList(); e.preventDefault(); }
+  else if (e.key === "ArrowUp") { hl = Math.max(hl - 1, 0); drawList(); e.preventDefault(); }
+  else if (e.key === "Enter") {
+    e.preventDefault();
+    if (picked) submit();
+    else if (hl >= 0 && opts[hl]) choose(key(opts[hl]));
+    else if (opts.length === 1) choose(key(opts[0]));
+  }
+  else if (e.key === "Escape") $("list").classList.remove("open");
+});
+$("list").addEventListener("mousedown", e => { const b = e.target.closest("button"); if (b) { e.preventDefault(); choose(b.dataset.k); } });
+document.addEventListener("click", e => { if (!e.target.closest(".picker")) $("list").classList.remove("open"); });
+$("go").addEventListener("click", submit);
+$("give").addEventListener("click", () => { if (confirm("Give up on this one? It counts as a loss.")) giveUp(); });
+
+$("btnHelp").onclick = () => $("help").showModal();
+$("closeHelp").onclick = () => $("help").close();
+$("btnStats").onclick = () => {
+  const played = run.w + run.l, max = Math.max(1, ...run.dist);
+  $("statsBody").innerHTML = `<div class="stats"><div><b>${run.w}–${run.l}</b><span>Record</span></div><div><b>${played ? Math.round(100 * run.w / played) : 0}%</b><span>Win rate</span></div><div><b>${run.streak}</b><span>Streak</span></div><div><b>${run.best}</b><span>Best streak</span></div></div>` +
+    `<p style="margin:14px 0 4px"><b>Wins by guess</b></p>${run.dist.map((n, i) => `<div style="display:flex;gap:8px;align-items:center;margin:3px 0"><span style="width:12px;font-size:13px">${i + 1}</span><div style="background:var(--g);color:#fff;text-shadow:1px 1px 0 #003a00;min-width:24px;width:${Math.max(7, 100 * n / max)}%;padding:0 8px;font-size:13px;font-weight:700;text-align:right;border:1px solid #000">${n}</div></div>`).join("")}`;
+  $("statsDlg").showModal();
+};
+$("closeStats").onclick = () => $("statsDlg").close();
+$("resetStats").onclick = () => { if (confirm("Reset your record back to 0–0?")) { const cur = run.cur; run = Object.assign(blankRun(), { cur, seen: run.seen }); saveRun(); $("statsDlg").close(); render(false); } };
+document.querySelectorAll(".titlebar .wbtns i:last-child").forEach(b => b.addEventListener("click", () => { const d = b.closest("dialog"); if (d) d.close(); }));
+
+resume();
+if (!store.get("oss:seen", false)) { store.set("oss:seen", true); $("help").showModal(); }
+</script>
+</body>
+</html>
