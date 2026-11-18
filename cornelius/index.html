@@ -1,0 +1,1410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Cornelius' Basics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --w95: #c0c0c0; --w95-hi: #ffffff; --w95-lo: #808080; --w95-dk: #000000;
+    --title1: #000080; --title2: #1084d0; --red: #c8102e;
+    --font: "Comic Neue", "Comic Sans MS", "Chalkboard SE", cursive;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: var(--font); user-select: none; -webkit-user-select: none; }
+  #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; image-rendering: pixelated; cursor: crosshair; }
+  .hidden { display: none !important; }
+
+  /* ---------- Win95 bits ---------- */
+  .bevel { background: var(--w95); border: 2px solid; border-color: var(--w95-hi) var(--w95-dk) var(--w95-dk) var(--w95-hi); box-shadow: inset -1px -1px var(--w95-lo), inset 1px 1px #dfdfdf; }
+  .win { position: absolute; background: var(--w95); border: 2px solid; border-color: var(--w95-hi) var(--w95-dk) var(--w95-dk) var(--w95-hi); box-shadow: inset -1px -1px var(--w95-lo), inset 1px 1px #dfdfdf, 6px 6px 0 rgba(0,0,0,.35); padding: 3px; }
+  .titlebar { background: linear-gradient(90deg, var(--title1), var(--title2)); color: #fff; font: bold 14px/1 Tahoma, "MS Sans Serif", Arial, sans-serif; padding: 4px 6px; display: flex; justify-content: space-between; align-items: center; }
+  .titlebar .x { background: var(--w95); color: #000; width: 18px; height: 16px; font-size: 12px; display: grid; place-items: center; border: 2px solid; border-color: var(--w95-hi) var(--w95-dk) var(--w95-dk) var(--w95-hi); }
+  .btn95 { font: bold 16px var(--font); background: var(--w95); color: #000; padding: 8px 22px; border: 2px solid; border-color: var(--w95-hi) var(--w95-dk) var(--w95-dk) var(--w95-hi); box-shadow: inset -1px -1px var(--w95-lo), inset 1px 1px #dfdfdf; cursor: pointer; }
+  .btn95:active { border-color: var(--w95-dk) var(--w95-hi) var(--w95-hi) var(--w95-dk); box-shadow: inset 1px 1px var(--w95-lo); }
+  .btn95:focus-visible { outline: 1px dotted #000; outline-offset: -6px; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; color: #000; }
+  #count { position: absolute; top: 10px; left: 10px; padding: 6px 12px; font-size: 28px; font-weight: 700; }
+  #quarters { position: absolute; top: 62px; left: 10px; padding: 3px 10px; font-size: 18px; font-weight: 700; }
+  #where { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); padding: 4px 12px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+  #staminaWrap { position: absolute; left: 10px; bottom: 12px; width: 240px; padding: 4px; }
+  #staminaWrap small { display: block; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  #staminaBar { height: 16px; background: #003300; border: 2px solid; border-color: var(--w95-lo) var(--w95-hi) var(--w95-hi) var(--w95-lo); }
+  #staminaFill { height: 100%; width: 100%; background: #22e622; }
+  #inv { position: absolute; top: 10px; right: 10px; padding: 6px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  #slots { display: flex; gap: 4px; }
+  .slot { width: 54px; height: 54px; background: #fff; border: 2px solid; border-color: var(--w95-lo) var(--w95-hi) var(--w95-hi) var(--w95-lo); display: grid; place-items: center; position: relative; }
+  .slot.sel { background: #ffef7a; outline: 3px solid var(--red); outline-offset: -1px; }
+  .slot img { width: 44px; height: 44px; image-rendering: pixelated; }
+  .slot b { position: absolute; top: 0; left: 3px; font-size: 11px; }
+  #invName { font-weight: 700; font-size: 15px; }
+  #faceWrap { position: absolute; right: 10px; bottom: 10px; padding: 4px; text-align: center; }
+  #faceWrap canvas { display: block; background: #fff8d0; border: 2px solid; border-color: var(--w95-lo) var(--w95-hi) var(--w95-hi) var(--w95-lo); }
+  #faceWrap small { display: block; font-weight: 700; font-size: 13px; padding-top: 2px; }
+  #faceWrap.mad canvas { animation: shake .18s infinite; background: #ffd0c8; }
+  @keyframes shake { 0%{transform:translate(0,0)} 25%{transform:translate(-2px,1px)} 50%{transform:translate(2px,-1px)} 75%{transform:translate(-1px,-2px)} 100%{transform:translate(0,0)} }
+  #prompt { position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%); padding: 6px 14px; font-size: 18px; font-weight: 700; white-space: nowrap; }
+  #toast { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); padding: 6px 14px; font-size: 18px; font-weight: 700; max-width: 90vw; text-align: center; }
+  #cross { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; transform: translate(-50%,-50%); }
+  #cross::before, #cross::after { content: ""; position: absolute; background: rgba(255,255,255,.85); box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+  #cross::before { left: 6px; top: 0; width: 2px; height: 14px; }
+  #cross::after { top: 6px; left: 0; height: 2px; width: 14px; }
+  #banner { position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%); font-size: 40px; font-weight: 700; color: #fff; text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000; white-space: nowrap; transition: opacity .6s; }
+  #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .12s; }
+
+  /* ---------- map ---------- */
+  #mapWin { left: 50%; top: 50%; transform: translate(-50%,-50%); }
+  #mapWin canvas { display: block; image-rendering: pixelated; width: min(560px, 86vw); height: auto; }
+  #mapWin p { margin: 4px 2px 0; font-weight: 700; font-size: 14px; }
+
+  /* ---------- phone ---------- */
+  #phone { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(380px, 94vw); height: min(640px, 94vh); background: linear-gradient(160deg, #e0263c, #8c0a1c); border-radius: 38px; padding: 46px 14px 54px; box-shadow: inset 0 0 0 4px #5a0612, inset 6px 6px 0 rgba(255,255,255,.25), 10px 10px 0 rgba(0,0,0,.4); display: flex; flex-direction: column; }
+  #phone::before { content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%); width: 70px; height: 10px; border-radius: 6px; background: #3a0410; }
+  #phone::after { content: ""; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 34px; height: 34px; border-radius: 50%; background: #b0122a; box-shadow: inset 2px 2px 0 rgba(255,255,255,.3), inset -2px -2px 0 rgba(0,0,0,.35); }
+  #screen { flex: 1; background: #f2f7ff; border: 3px solid #3a0410; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+  .ph-top { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: linear-gradient(90deg, var(--title1), var(--title2)); color: #fff; }
+  .ph-top canvas { width: 40px; height: 48px; background: #fff8d0; border-radius: 6px; border: 2px solid #fff; }
+  .ph-top b { font-size: 17px; display: block; }
+  .ph-top small { font-size: 12px; opacity: .9; }
+  #chat { flex: 1; overflow-y: auto; padding: 10px 8px; display: flex; flex-direction: column; gap: 6px; }
+  .msg { max-width: 82%; padding: 7px 11px; border-radius: 16px; font-size: 16px; line-height: 1.25; word-wrap: break-word; }
+  .msg.them { background: #e1e4ea; color: #000; align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg.me { background: #1f7aff; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg.mad { background: #ff3030; color: #fff; font-weight: 700; text-transform: uppercase; }
+  .msg.glitch { background: #222; color: #4f4; font-family: "Courier New", monospace; animation: glitch .25s infinite steps(2); }
+  .msg .opt { display: block; margin-top: 3px; }
+  .typing { letter-spacing: 3px; color: #666; }
+  @keyframes glitch { 0%{transform:translate(0,0); filter:hue-rotate(0)} 50%{transform:translate(2px,-1px) skewX(4deg); filter:hue-rotate(90deg)} 100%{transform:translate(-2px,1px); filter:hue-rotate(200deg)} }
+  #phOpts { display: flex; flex-direction: column; gap: 5px; padding: 6px 8px 8px; }
+  #phOpts button { text-align: left; font-size: 15px; padding: 7px 10px; }
+  #phOpts button.glitchy { font-family: "Courier New", monospace; background: #333; color: #6f6; border-color: #777 #000 #000 #777; }
+  #phCont { margin: 6px 8px 8px; text-align: center; }
+
+  /* ---------- title ---------- */
+  #title { position: fixed; inset: 0; background: #fff; overflow-y: auto; }
+  #titleInner { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; gap: 10px; }
+  .wordart { font-family: Impact, "Arial Black", var(--font); font-size: clamp(44px, 10vw, 104px); line-height: .95; text-align: center; transform: skewY(-4deg) rotate(-2deg); background: linear-gradient(180deg, #fff35a 0%, #ff8a00 45%, #c8102e 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: 2px #4a0010; filter: drop-shadow(5px 5px 0 #6aa84f); margin: 0; }
+  .sub { font-size: clamp(18px, 3.4vw, 30px); font-weight: 700; color: #1a8a1a; transform: rotate(-2deg); margin: 0; text-align: center; }
+  .sub i { color: #c8102e; }
+  #titleRow { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  #titleCorn { width: 200px; height: 300px; }
+  #chalk { width: min(320px, 86vw); background: #1e3b2a; border: 10px solid #8a5a2b; color: #f4f4e8; padding: 12px 16px; font-size: 17px; line-height: 1.35; box-shadow: 6px 6px 0 rgba(0,0,0,.25); }
+  #chalk b { color: #ffe680; }
+  #titleBtns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  #titleBtns .btn95 { font-size: 22px; padding: 10px 34px; }
+  #fine { font-size: 13px; color: #555; text-align: center; max-width: 560px; }
+  #touchNote { color: var(--red); font-weight: 700; }
+  #best { font-weight: 700; color: #000080; }
+
+  /* ---------- dialogs ---------- */
+  .dlg { left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(520px, 94vw); }
+  .dlg .body { padding: 14px; display: flex; gap: 14px; align-items: center; }
+  .dlg .body p { margin: 0 0 8px; font-size: 17px; }
+  .dlg .btns { display: flex; justify-content: center; gap: 10px; padding: 4px 0 12px; }
+  .dlg canvas { flex: none; background: #fff8d0; border: 2px solid; border-color: var(--w95-lo) var(--w95-hi) var(--w95-hi) var(--w95-lo); }
+  .err { width: 40px; height: 40px; border-radius: 50%; background: #e00; color: #fff; display: grid; place-items: center; font: bold 26px Arial, sans-serif; flex: none; box-shadow: 2px 2px 0 #600; }
+  #diploma { background: #fffbea; border: 6px double #b8860b; padding: 14px 18px; text-align: center; margin: 12px; }
+  #diploma h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 26px; color: #6b4a00; }
+  #diploma .deg { font-size: 22px; font-weight: 700; color: var(--red); margin: 8px 0; }
+  #diploma small { color: #666; }
+  #winStats { font-size: 15px; margin-top: 8px; }
+  #scare { position: fixed; inset: 0; display: grid; place-items: center; background: #ffd400; }
+  #scare canvas { width: min(80vh, 90vw); height: auto; animation: zoom .6s ease-out; }
+  @keyframes zoom { from { transform: scale(.3) rotate(-10deg); } to { transform: scale(1) rotate(0); } }
+
+  /* ---------- mobile / touch ---------- */
+  #gl, #touch { touch-action: none; }
+  #touch { position: fixed; inset: 0; -webkit-touch-callout: none; }
+  #joy { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255,255,255,.18); border: 3px solid rgba(255,255,255,.6); pointer-events: none; display: none; }
+  #knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255,255,255,.75); border: 3px solid #000; }
+  #joyHint { position: absolute; left: 22px; bottom: 70px; color: #fff; font-weight: 700; font-size: 14px; text-shadow: 1px 1px 0 #000; pointer-events: none; opacity: .85; }
+  .tbtn { position: absolute; font: bold 15px var(--font); background: var(--w95); color: #000; border: 2px solid; border-color: var(--w95-hi) var(--w95-dk) var(--w95-dk) var(--w95-hi); box-shadow: inset -1px -1px var(--w95-lo), inset 1px 1px #dfdfdf; border-radius: 50%; width: 72px; height: 72px; display: grid; place-items: center; padding: 0; opacity: .92; touch-action: none; }
+  .tbtn.on, .tbtn:active { background: #ffef7a; border-color: var(--w95-dk) var(--w95-hi) var(--w95-hi) var(--w95-dk); }
+  #tRun { right: 18px; bottom: 18px; width: 84px; height: 84px; background: #9be22b; }
+  #tUse { right: 112px; bottom: 26px; }
+  #tAct { right: 34px; bottom: 116px; }
+  #tMap, #tPause { border-radius: 6px; width: 54px; height: 40px; top: 10px; font-size: 14px; }
+  #tMap { right: 248px; } #tPause { right: 192px; }
+  body.mobile #count { font-size: 18px; padding: 3px 8px; top: 6px; left: 6px; }
+  body.mobile #quarters { font-size: 14px; top: 40px; left: 6px; padding: 2px 8px; }
+  body.mobile #where { font-size: 12px; top: 6px; padding: 2px 8px; }
+  body.mobile #staminaWrap { width: 150px; left: 6px; top: 66px; bottom: auto; padding: 2px; }
+  body.mobile #staminaWrap small { font-size: 10px; }
+  body.mobile #staminaBar { height: 10px; }
+  body.mobile #inv { top: 6px; right: 6px; padding: 3px; pointer-events: auto; }
+  body.mobile .slot { width: 42px; height: 42px; }
+  body.mobile .slot img { width: 34px; height: 34px; }
+  body.mobile #invName { font-size: 12px; }
+  body.mobile #faceWrap { left: 6px; right: auto; top: 96px; bottom: auto; padding: 2px; }
+  body.mobile #faceWrap canvas { width: 56px; height: 70px; }
+  body.mobile #faceWrap small { font-size: 10px; max-width: 70px; overflow: hidden; }
+  body.mobile #prompt { bottom: auto; top: 46px; font-size: 14px; }
+  body.mobile #toast { top: 76px; font-size: 14px; }
+  body.mobile #banner { font-size: 26px; }
+  body.mobile #phOpts { display: grid; grid-template-columns: repeat(3, 1fr); }
+  body.mobile #phone { height: 96vh; width: min(640px, 96vw); border-radius: 22px; padding: 10px 10px 12px; }
+  body.mobile #phone::before, body.mobile #phone::after { display: none; }
+  body.mobile .msg { font-size: 14px; }
+  body.mobile #phOpts button { font-size: 14px; padding: 6px 10px; }
+  body.mobile .dlg .body { padding: 8px; }
+  #rotate { position: fixed; inset: 0; background: #fff; display: none; place-items: center; text-align: center; font-size: 22px; font-weight: 700; padding: 24px; z-index: 50; }
+  #rotate span { font-size: 64px; display: block; animation: tilt 1.6s infinite; }
+  @keyframes tilt { 0%,30% { transform: rotate(0); } 60%,100% { transform: rotate(-90deg); } }
+  @media (orientation: portrait) { body.mobile.ingame #rotate { display: grid; } }
+  #ctrlBtn { font-size: 16px; padding: 6px 16px; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="touch" class="hidden">
+  <div id="joy"><div id="knob"></div></div>
+  <div id="joyHint">◀ drag left side to walk · drag right side to look ▶</div>
+  <button class="tbtn" id="tRun">RUN</button>
+  <button class="tbtn" id="tUse">USE</button>
+  <button class="tbtn" id="tAct">✋</button>
+  <button class="tbtn" id="tMap">MAP</button>
+  <button class="tbtn" id="tPause">❚❚</button>
+</div>
+<div id="rotate"><div><span>📱</span>Turn your phone sideways to play!</div></div>
+
+<div id="hud" class="hidden">
+  <div id="count" class="bevel">☕ 0/7 Coffees</div>
+  <div id="quarters" class="bevel">🪙 × 0</div>
+  <div id="where" class="bevel">UNL City Campus</div>
+  <div id="cross"></div>
+  <div id="staminaWrap" class="bevel"><small>STAMINA</small><div id="staminaBar"><div id="staminaFill"></div></div></div>
+  <div id="inv" class="bevel"><div id="slots"></div><div id="invName">Nothing</div></div>
+  <div id="faceWrap" class="bevel"><canvas id="face" width="120" height="150"></canvas><small id="faceTxt">Cornelius 🙂</small></div>
+  <div id="prompt" class="bevel hidden"></div>
+  <div id="toast" class="bevel hidden"></div>
+  <div id="banner" style="opacity:0"></div>
+</div>
+<div id="fade"></div>
+
+<div id="mapWin" class="win hidden">
+  <div class="titlebar"><span>📁 CampusMap.bmp</span><span class="x">✕</span></div>
+  <canvas id="mapC" width="460" height="420"></canvas>
+  <p>☕ = coffee still inside &nbsp; ✓ = got it &nbsp; ★ = Registrar &nbsp; (M to close)</p>
+</div>
+
+<div id="phone" class="hidden">
+  <div id="screen">
+    <div class="ph-top"><canvas id="phFace" width="80" height="96"></canvas><div><b>Cornelius 🌽</b><small id="phStatus">online • UNL's friendly helper</small></div></div>
+    <div id="chat"></div>
+    <div id="phOpts"></div>
+    <button id="phCont" class="btn95 hidden">Keep going ▶ (Enter)</button>
+  </div>
+</div>
+
+<div id="pauseWin" class="win dlg hidden">
+  <div class="titlebar"><span>Paused.exe</span><span class="x">✕</span></div>
+  <div class="body"><div class="err" style="background:#000080">i</div><div><p><b>Game paused.</b></p><p>Cornelius is waiting. Patiently. For now.</p><p style="font-size:14px" class="desk-only">Press <b>Esc</b> or <b>P</b> anytime to pause.</p><button class="btn95 ctrlToggle" style="font-size:14px;padding:5px 12px">Controls</button></div></div>
+  <div class="btns"><button class="btn95" id="resumeBtn">Resume</button><button class="btn95" id="restartBtn">Restart</button><button class="btn95" id="quitBtn">Quit to title</button></div>
+</div>
+
+<div id="overWin" class="win dlg hidden">
+  <div class="titlebar"><span>Cornelius.exe</span><span class="x">✕</span></div>
+  <div class="body"><canvas id="overFace" width="120" height="150"></canvas><div><p style="display:flex;gap:8px;align-items:center"><span class="err">✕</span><b style="font-size:20px">CORNELIUS CAUGHT YOU!</b></p><p id="overLine"></p><p id="overStats" style="font-size:14px;color:#333"></p></div></div>
+  <div class="btns"><button class="btn95" id="retryBtn">Retry</button><button class="btn95" id="overTitleBtn">Title screen</button></div>
+</div>
+
+<div id="winWin" class="win dlg hidden">
+  <div class="titlebar"><span>Registrar.exe — Graduation Complete</span><span class="x">✕</span></div>
+  <div id="diploma">
+    <small>Unofficially and with great caffeination</small>
+    <h2>Certificate of Graduation</h2>
+    <div>is hereby awarded to <b>YOU</b>, Husker, for the degree of</div>
+    <div class="deg">Bachelor of Caffeinated Arts ☕</div>
+    <small>This diploma is not real. Please do not show it to your parents.</small>
+    <div id="winStats"></div>
+  </div>
+  <div class="btns"><button class="btn95" id="againBtn">Play again</button><button class="btn95" id="winTitleBtn">Title screen</button></div>
+</div>
+
+<div id="scare" class="hidden"><canvas id="scareC" width="256" height="320"></canvas></div>
+
+<div id="title">
+  <div id="titleInner">
+    <h1 class="wordart">Cornelius'<br>Basics</h1>
+    <p class="sub">in Husker Education &amp; <i>Caffeination</i>™</p>
+    <div id="titleRow">
+      <canvas id="titleCorn" width="256" height="384"></canvas>
+      <div id="chalk">
+        <b>Grab 7 coffees ☕</b> hidden in buildings all over campus.<br>
+        Cornelius texts you <b>3 super easy questions</b> per coffee.<br>
+        Get one wrong and he… gets a little upset. 🌽<br>
+        Bring all 7 to the <b>Registrar</b> to graduate!<br><br>
+        <span id="helpDesk"><b>WASD</b> move · <b>Mouse</b> look · <b>Shift</b> run<br>
+        <b>E</b> use machine/desk · <b>1-3</b>/wheel pick item<br>
+        <b>Click</b> or <b>F</b> use item · <b>M</b> map · <b>P</b> pause</span>
+        <span id="helpMob" class="hidden"><b>Left side</b> drag to walk · <b>Right side</b> drag to look<br>
+        <b>RUN</b> hold to run · <b>USE</b> use item · <b>✋</b> machine/desk<br>
+        Tap an <b>item slot</b> to pick it · play sideways 📱</span>
+      </div>
+    </div>
+    <div id="titleBtns"><button class="btn95" id="startBtn">START</button></div>
+    <button class="btn95 ctrlToggle" id="ctrlBtn">Controls</button>
+    <div id="best"></div>
+    <div id="touchNote" class="hidden">Looks like a touchscreen. Mobile controls are on!</div>
+    <div id="fine">©2026 Kernel Games. A goofy fan parody of a certain 90s-looking teacher game, set on UNL's City Campus. Not affiliated with or endorsed by the University of Nebraska–Lincoln. Map is squished and approximate.</div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+/* =========================================================
+   basics
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rnd = Math.random;
+const pick = a => a[Math.floor(rnd() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const FONT = '"Comic Neue", "Comic Sans MS", cursive';
+try { await Promise.race([document.fonts.load(`bold 40px "Comic Neue"`), sleep(1500)]); } catch (e) {}
+
+const C = 4;            // world units per grid cell
+const EYE = 2.1;
+const PR = 0.75;        // player radius
+const WALK = 6, RUN = 10.5, SCOOT = 13.5;
+
+/* =========================================================
+   canvas texture helpers
+   ========================================================= */
+function cvs(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function mkTex(c, rep = true) {
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapLinearFilter;
+  if (rep) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+function speckle(g, w, h, base, amt, rr = rnd, dots = null) {
+  const img = g.getImageData(0, 0, w, h), d = img.data;
+  for (let i = 0; i < w * h; i++) {
+    let v = (rr() - .5) * amt, [r, gg, b] = base;
+    if (dots && rr() < dots.p) [r, gg, b] = pick(dots.cols), v = 0;
+    d[i * 4] = clamp(r + v, 0, 255); d[i * 4 + 1] = clamp(gg + v, 0, 255); d[i * 4 + 2] = clamp(b + v, 0, 255); d[i * 4 + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+}
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+
+const TX = {};
+function makeTextures() {
+  let c, g;
+  // interior brick (white-ish, tinted by material)
+  c = cvs(64, 64); g = c.getContext('2d'); g.fillStyle = '#9a9a9a'; g.fillRect(0, 0, 64, 64);
+  for (let row = 0; row < 8; row++) for (let col = -1; col < 4; col++) {
+    const x = col * 16 + (row % 2 ? 8 : 0), y = row * 8, s = 225 + rnd() * 25;
+    g.fillStyle = `rgb(${s},${s},${s})`; g.fillRect(x + 1, y + 1, 15, 7);
+  }
+  TX.brick = mkTex(c);
+  // ceiling speckle
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [215, 215, 210], 30, rnd, { p: .28, cols: [[40, 40, 40], [120, 120, 120], [255, 255, 255]] }); TX.ceiling = mkTex(c);
+  // floors
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [196, 170, 120], 40, rnd, { p: .2, cols: [[120, 95, 60], [240, 230, 200], [90, 80, 60]] }); TX.gravel = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [40, 70, 140], 40, rnd, { p: .15, cols: [[20, 40, 90], [80, 110, 180]] }); TX.carpet = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? '#1c1c1c' : '#f2f2ea'; g.fillRect(i * 16, j * 16, 16, 16); } TX.checker = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [168, 112, 60], 25); g.fillStyle = 'rgba(70,40,15,.6)'; for (let y = 0; y < 32; y += 8) g.fillRect(0, y, 32, 1); g.fillRect(12, 0, 1, 8); g.fillRect(26, 8, 1, 8); g.fillRect(6, 16, 1, 8); g.fillRect(20, 24, 1, 8); TX.wood = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [225, 214, 186], 18); g.fillStyle = '#a89c80'; g.fillRect(0, 0, 32, 1); g.fillRect(0, 16, 32, 1); g.fillRect(0, 0, 1, 32); g.fillRect(16, 0, 1, 32); TX.tile = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [165, 165, 160], 30); TX.concrete = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [60, 150, 55], 30); g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, 0, 16, 32); TX.turf = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [246, 246, 242], 8); TX.plain = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [80, 80, 84], 30); TX.asphalt = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [40, 110, 45], 50); TX.hedge = mkTex(c);
+  c = cvs(32, 32); g = c.getContext('2d'); speckle(g, 32, 32, [70, 66, 64], 30); TX.roof = mkTex(c);
+  // facades (64px == 8 world units)
+  c = cvs(64, 64); g = c.getContext('2d'); g.fillStyle = '#5e2a20'; g.fillRect(0, 0, 64, 64);
+  for (let row = 0; row < 16; row++) for (let col = -1; col < 9; col++) { const s = rnd() * 30; g.fillStyle = `rgb(${150 + s},${55 + s / 2},${42 + s / 3})`; g.fillRect(col * 8 + (row % 2 ? 4 : 0), row * 4, 7, 3); }
+  const win = (x, y, w, h) => { g.fillStyle = '#e9e2cf'; g.fillRect(x - 2, y - 2, w + 4, h + 4); g.fillStyle = '#2b4a78'; g.fillRect(x, y, w, h); g.fillStyle = '#6f93c4'; g.fillRect(x + 1, y + 1, 3, h - 2); g.fillStyle = '#e9e2cf'; g.fillRect(x + w / 2 - .5, y, 1, h); g.fillRect(x, y + h / 2 - .5, w, 1); };
+  win(8, 8, 16, 18); win(40, 8, 16, 18); win(8, 38, 16, 18); win(40, 38, 16, 18);
+  TX.facadeRed = mkTex(c);
+  c = cvs(64, 64); g = c.getContext('2d'); speckle(g, 64, 64, [232, 222, 196], 14); g.fillStyle = 'rgba(150,135,105,.6)'; for (let y = 0; y < 64; y += 16) g.fillRect(0, y, 64, 1); for (let x = 0; x < 64; x += 16) g.fillRect(x, 0, 1, 64);
+  g.fillStyle = '#26364d'; g.fillRect(12, 6, 6, 52); g.fillRect(44, 6, 6, 52); TX.facadeWhite = mkTex(c);
+  c = cvs(64, 64); g = c.getContext('2d'); speckle(g, 64, 64, [170, 168, 160], 20); g.fillStyle = '#b5121b'; g.fillRect(0, 0, 64, 12); g.fillStyle = '#3a3a3a';
+  for (let x = 4; x < 64; x += 20) { g.beginPath(); g.moveTo(x, 64); g.lineTo(x, 34); g.arc(x + 6, 34, 6, Math.PI, 0); g.lineTo(x + 12, 64); g.fill(); }
+  TX.facadeStadium = mkTex(c);
+  // door
+  c = cvs(64, 96); g = c.getContext('2d'); g.fillStyle = '#3a2412'; g.fillRect(0, 0, 64, 96); g.fillStyle = '#7a4a22'; g.fillRect(3, 3, 28, 93); g.fillRect(33, 3, 28, 93);
+  g.fillStyle = '#9fd0ff'; g.fillRect(9, 12, 16, 26); g.fillRect(39, 12, 16, 26); g.fillStyle = '#c9c9c9'; g.fillRect(6, 50, 22, 4); g.fillRect(36, 50, 22, 4);
+  TX.door = mkTex(c, false);
+  // vending
+  c = cvs(64, 96); g = c.getContext('2d'); g.fillStyle = '#c8102e'; g.fillRect(0, 0, 64, 96); g.fillStyle = '#111'; g.fillRect(5, 16, 40, 62);
+  const snack = ['#ffd400', '#2bd14b', '#ff7ab8', '#4aa3ff', '#ff8a00', '#fff'];
+  for (let r = 0; r < 5; r++) for (let k = 0; k < 4; k++) { g.fillStyle = snack[(r * 3 + k) % 6]; g.fillRect(8 + k * 9, 19 + r * 12, 7, 9); }
+  g.fillStyle = '#fff'; g.font = `bold 13px ${FONT}`; g.fillText('SNAX', 10, 13); g.fillStyle = '#999'; g.fillRect(49, 26, 10, 20); g.fillStyle = '#222'; g.fillRect(53, 30, 2, 8); g.fillRect(8, 82, 34, 8);
+  TX.vending = mkTex(c, false);
+  // bookshelf
+  c = cvs(32, 32); g = c.getContext('2d'); g.fillStyle = '#5a3416'; g.fillRect(0, 0, 32, 32);
+  for (let r = 0; r < 4; r++) { let x = 2; while (x < 30) { const w = 2 + Math.floor(rnd() * 3); g.fillStyle = pick(['#a1281e', '#1f4a8a', '#2c7a3a', '#d6b83a', '#6a2c7a', '#e6e0d0']); g.fillRect(x, r * 8 + 1, w, 6); x += w + (rnd() < .2 ? 1 : 0); } }
+  TX.books = mkTex(c);
+}
+
+/* =========================================================
+   sprite art (all original, drawn in code)
+   ========================================================= */
+function line(g, x1, y1, x2, y2) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); }
+function hand(g, x, y, ang) { for (const a of [-.6, 0, .6]) line(g, x, y, x + Math.cos(ang + a) * 12, y + Math.sin(ang + a) * 12); }
+function arm(g, pts) { g.strokeStyle = '#1a1a1a'; g.lineWidth = 7; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.stroke(); const n = pts.length; g.lineWidth = 5; hand(g, pts[n - 2], pts[n - 1], Math.atan2(pts[n - 1] - pts[n - 3], pts[n - 2] - pts[n - 4])); }
+
+// mood: 0 happy, 1 grumpy, 2 furious. pose: wave1 wave2 reach1 reach2 down
+function drawCorn(g, mood, pose) {
+  g.clearRect(0, 0, 256, 384); g.lineCap = 'round'; g.lineJoin = 'round';
+  const cx = 128;
+  // legs + sneakers
+  g.strokeStyle = '#1a1a1a'; g.lineWidth = 7; line(g, 110, 320, 100, 352); line(g, 146, 320, 156, 352);
+  for (const [x, dir] of [[96, -1], [160, 1]]) {
+    g.fillStyle = '#d01c1c'; g.strokeStyle = '#5a0a0a'; g.lineWidth = 3; rr(g, x - 24 + dir * 4, 346, 44, 22, 11); g.fill(); g.stroke();
+    g.fillStyle = '#fff'; g.fillRect(x - 24 + dir * 4, 362, 44, 6); g.strokeStyle = '#fff'; g.lineWidth = 2; line(g, x - 6, 352, x + 4, 352); line(g, x - 6, 357, x + 4, 357);
+  }
+  // back arms
+  const P = {
+    wave1: [[74, 238, 44, 282], [182, 238, 214, 196, 230, 152]],
+    wave2: [[74, 238, 40, 278], [182, 238, 222, 206, 248, 172]],
+    reach1: [[74, 238, 34, 204, 20, 162], [182, 238, 222, 204, 236, 162]],
+    reach2: [[74, 238, 28, 218, 10, 186], [182, 238, 228, 218, 246, 186]],
+    down: [[74, 238, 50, 292], [182, 238, 206, 292]],
+  }[pose];
+  arm(g, P[0]); arm(g, P[1]);
+  // cob
+  g.save(); g.beginPath(); g.ellipse(cx, 188, 64, 128, 0, 0, Math.PI * 2); g.fillStyle = '#e2a90c'; g.fill(); g.clip();
+  for (let row = 0; row < 20; row++) for (let col = -1; col < 11; col++) {
+    const x = 60 + col * 14 + (row % 2 ? 7 : 0), y = 62 + row * 14;
+    g.fillStyle = '#ffd43a'; rr(g, x - 6, y - 6, 12, 12, 4); g.fill(); g.strokeStyle = '#b98100'; g.lineWidth = 1.5; g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(x - 3, y - 4, 3, 3);
+  }
+  if (mood === 2) { g.fillStyle = 'rgba(235,30,20,.38)'; g.fillRect(0, 0, 256, 384); }
+  g.restore();
+  g.strokeStyle = '#8a5a00'; g.lineWidth = 4; g.beginPath(); g.ellipse(cx, 188, 64, 128, 0, 0, Math.PI * 2); g.stroke();
+  // husks
+  const leaf = (pts, col) => { g.beginPath(); g.moveTo(pts[0], pts[1]); g.quadraticCurveTo(pts[2], pts[3], pts[4], pts[5]); g.quadraticCurveTo(pts[6], pts[7], pts[8], pts[9]); g.closePath(); g.fillStyle = col; g.fill(); g.strokeStyle = '#24561a'; g.lineWidth = 4; g.stroke(); g.lineWidth = 2; line(g, (pts[0] + pts[8]) / 2, 330, pts[4], pts[5] + 14); };
+  leaf([62, 334, 30, 250, 74, 168, 100, 250, 132, 334], '#5aa83a');
+  leaf([194, 334, 226, 250, 182, 168, 156, 250, 124, 334], '#5aa83a');
+  leaf([84, 338, 84, 270, 108, 226, 130, 280, 150, 338], '#6cc045');
+  leaf([172, 338, 172, 270, 148, 226, 126, 280, 106, 338], '#63b53f');
+  // face
+  g.fillStyle = '#fff'; g.strokeStyle = '#111'; g.lineWidth = 4;
+  for (const ex of [104, 152]) { g.beginPath(); g.ellipse(ex, 142, 17, 21, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
+  g.fillStyle = '#111'; const pr = mood === 2 ? 5 : 7;
+  g.beginPath(); g.arc(108, 147, pr, 0, 7); g.fill(); g.beginPath(); g.arc(148, 147, pr, 0, 7); g.fill();
+  g.lineWidth = mood ? 8 : 5;
+  if (mood === 0) { g.beginPath(); g.arc(104, 120, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); g.beginPath(); g.arc(152, 120, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
+  else { const s = mood === 2 ? 18 : 9; line(g, 86, 116 - s / 2, 122, 122 + s / 2); line(g, 170, 116 - s / 2, 134, 122 + s / 2); }
+  g.fillStyle = '#e88a1a'; g.strokeStyle = '#8a4a00'; g.lineWidth = 2; g.beginPath(); g.ellipse(128, 172, 9, 7, 0, 0, 7); g.fill(); g.stroke();
+  g.strokeStyle = '#111'; g.lineWidth = 4;
+  if (mood === 0) { g.beginPath(); g.moveTo(98, 190); g.quadraticCurveTo(128, 240, 158, 190); g.closePath(); g.fillStyle = '#3a0a0a'; g.fill(); g.stroke(); g.fillStyle = '#ff7a9a'; g.beginPath(); g.ellipse(128, 212, 12, 7, 0, 0, 7); g.fill(); }
+  else if (mood === 1) { g.lineWidth = 6; g.beginPath(); g.moveTo(104, 214); g.quadraticCurveTo(128, 190, 152, 214); g.stroke(); }
+  else { g.fillStyle = '#3a0a0a'; g.beginPath(); g.ellipse(128, 208, 26, 20, 0, 0, 7); g.fill(); g.stroke(); g.fillStyle = '#fff'; g.fillRect(108, 191, 40, 7); g.fillRect(112, 220, 32, 5); }
+  // hat (plain red cowboy hat)
+  g.fillStyle = '#d01c1c'; g.strokeStyle = '#6a0a0a'; g.lineWidth = 4;
+  g.beginPath(); g.moveTo(84, 74); g.lineTo(92, 24); g.quadraticCurveTo(128, 6, 164, 24); g.lineTo(172, 74); g.closePath(); g.fill(); g.stroke();
+  line(g, 128, 14, 128, 40);
+  g.fillStyle = '#8f0d0d'; g.fillRect(86, 60, 84, 13);
+  g.fillStyle = '#d01c1c'; g.beginPath(); g.moveTo(28, 62); g.quadraticCurveTo(128, 108, 228, 62); g.quadraticCurveTo(236, 82, 202, 88); g.quadraticCurveTo(128, 106, 54, 88); g.quadraticCurveTo(20, 82, 28, 62); g.closePath(); g.fill(); g.stroke();
+  if (mood === 2) { g.fillStyle = 'rgba(230,230,230,.9)'; for (const [x, y, r] of [[70, 20, 12], [56, 6, 9], [186, 20, 12], [200, 6, 9]]) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } }
+}
+function cornCanvas(mood, pose) { const c = cvs(256, 384); drawCorn(c.getContext('2d'), mood, pose); return c; }
+function drawPortrait(target, mood) {
+  const src = cornCanvas(mood, 'down'), g = target.getContext('2d');
+  g.clearRect(0, 0, target.width, target.height); g.imageSmoothingEnabled = true;
+  g.drawImage(src, 20, 0, 216, 270, 0, 0, target.width, target.height);
+}
+function coffeeCanvas() {
+  const c = cvs(64, 96), g = c.getContext('2d');
+  g.fillStyle = '#f5821f'; g.fillRect(34, 0, 5, 30); g.fillStyle = '#e2187b'; for (let y = 2; y < 30; y += 8) g.fillRect(34, y, 5, 4);
+  g.beginPath(); g.moveTo(10, 30); g.lineTo(54, 30); g.lineTo(48, 92); g.lineTo(16, 92); g.closePath(); g.fillStyle = 'rgba(225,238,255,.75)'; g.fill();
+  g.beginPath(); g.moveTo(12, 40); g.lineTo(52, 40); g.lineTo(48, 90); g.lineTo(16, 90); g.closePath(); g.fillStyle = '#8a5a2e'; g.fill();
+  g.fillStyle = '#c8935a'; g.fillRect(12, 40, 40, 5); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(18, 46, 9, 8); g.fillRect(33, 48, 9, 8); g.fillRect(24, 60, 8, 8);
+  g.fillStyle = '#e2187b'; g.fillRect(14, 64, 36, 8); g.fillStyle = '#f5821f'; g.fillRect(15, 72, 34, 8);
+  g.fillStyle = '#fff'; g.beginPath(); g.ellipse(32, 30, 25, 7, 0, 0, 7); g.fill(); g.strokeStyle = '#aab'; g.lineWidth = 2; g.stroke();
+  g.strokeStyle = '#333'; g.lineWidth = 2; g.beginPath(); g.moveTo(10, 30); g.lineTo(16, 92); g.lineTo(48, 92); g.lineTo(54, 30); g.stroke();
+  return c;
+}
+const ITEMS = {
+  butter: { name: 'Stick of Butter', tip: 'Throw it at Cornelius!' },
+  bierock: { name: 'Bierock', tip: 'Refills your stamina.' },
+  scooter: { name: 'E-Scooter', tip: 'Zoom for 8 seconds.' },
+};
+function itemCanvas(type) {
+  const c = cvs(64, 64), g = c.getContext('2d'); g.lineWidth = 3; g.strokeStyle = '#222';
+  if (type === 'butter') { g.fillStyle = '#ffe36a'; rr(g, 6, 22, 52, 22, 4); g.fill(); g.stroke(); g.fillStyle = '#fff'; g.fillRect(30, 23, 27, 20); g.fillStyle = '#2a5fd0'; g.fillRect(34, 28, 18, 4); g.fillRect(34, 35, 12, 3); }
+  if (type === 'bierock') { g.fillStyle = '#c98a3a'; g.beginPath(); g.ellipse(32, 36, 26, 18, 0, 0, 7); g.fill(); g.stroke(); g.fillStyle = 'rgba(255,240,200,.7)'; g.beginPath(); g.ellipse(24, 28, 9, 4, -.4, 0, 7); g.fill(); }
+  if (type === 'scooter') { g.strokeStyle = '#333'; g.lineWidth = 5; line(g, 46, 48, 40, 10); line(g, 32, 10, 48, 10); g.fillStyle = '#9be22b'; g.fillRect(10, 44, 38, 6); g.fillStyle = '#111'; g.beginPath(); g.arc(14, 54, 7, 0, 7); g.fill(); g.beginPath(); g.arc(48, 54, 7, 0, 7); g.fill(); }
+  return c;
+}
+function fossilCanvas() { const c = cvs(64, 64), g = c.getContext('2d'); g.strokeStyle = '#f0ead8'; g.lineWidth = 7; g.lineCap = 'round'; line(g, 14, 50, 50, 14); for (const [x, y] of [[14, 50], [50, 14]]) { g.fillStyle = '#f0ead8'; g.beginPath(); g.arc(x - 4, y + 2, 7, 0, 7); g.arc(x + 3, y - 4, 7, 0, 7); g.fill(); } return c; }
+function artCanvas() { const c = cvs(64, 64), g = c.getContext('2d'); g.fillStyle = '#c9a227'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#fff'; g.fillRect(6, 6, 52, 52); for (let i = 0; i < 6; i++) { g.fillStyle = pick(['#e2231a', '#1d4fd8', '#ffd400', '#111', '#2bb24c']); if (rnd() < .5) g.fillRect(6 + rnd() * 40, 6 + rnd() * 40, 8 + rnd() * 20, 8 + rnd() * 20); else { g.beginPath(); g.arc(14 + rnd() * 36, 14 + rnd() * 36, 5 + rnd() * 10, 0, 7); g.fill(); } } return c; }
+function clerkCanvas() {
+  const c = cvs(64, 96), g = c.getContext('2d');
+  g.fillStyle = '#3a5a8a'; g.fillRect(14, 50, 36, 46); g.fillStyle = '#f0c8a0'; g.beginPath(); g.arc(32, 32, 18, 0, 7); g.fill(); g.fillStyle = '#4a3020'; g.fillRect(14, 12, 36, 10);
+  g.strokeStyle = '#111'; g.lineWidth = 2; g.strokeRect(20, 28, 9, 7); g.strokeRect(35, 28, 9, 7); line(g, 29, 31, 35, 31); line(g, 26, 42, 38, 42);
+  g.fillStyle = '#fff'; g.fillRect(28, 52, 8, 12); return c;
+}
+function textCanvas(text, bg, fg) {
+  const c = cvs(512, 112), g = c.getContext('2d'); g.fillStyle = bg; g.fillRect(0, 0, 512, 112); g.strokeStyle = fg; g.lineWidth = 6; g.strokeRect(6, 6, 500, 100);
+  let fs = 54; g.font = `bold ${fs}px ${FONT}`; while (g.measureText(text).width > 470 && fs > 18) { fs -= 2; g.font = `bold ${fs}px ${FONT}`; }
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 256, 60); return c;
+}
+function sprite(canvas, w, h, anchorBottom = true) {
+  const m = new THREE.SpriteMaterial({ map: mkTex(canvas, false), transparent: true, alphaTest: .1 });
+  const s = new THREE.Sprite(m); s.scale.set(w, h, 1); if (anchorBottom) s.center.set(.5, 0); return s;
+}
+const signSprite = (text, bg = '#c8102e', fg = '#fff', w = 8) => sprite(textCanvas(text, bg, fg), w, w * 112 / 512, false);
+
+/* =========================================================
+   maps
+   ========================================================= */
+const MAPS = {
+  union: [
+    '#####################',
+    '#V.................V#',
+    '#...................#',
+    '#..TT..TT...TT..TT..#',
+    '#...................#',
+    '#..TT..TT...TT..TT..#',
+    '#...................#',
+    '#V..................#',
+    '######.......########',
+    '#..c.#.......#......#',
+    '#.........S.........#',
+    '##########X##########'],
+  love: [
+    '###################',
+    '#c......#.........#',
+    '#.KKKKK.#.KKKKKKK.#',
+    '#.......#.........#',
+    '#.KKKKK...KKKKKKK.#',
+    '#.................#',
+    '#.KKKKKKK.KKKKKKK.#',
+    '#.................#',
+    '#V.KKKKK...KKKKK..#',
+    '#.................#',
+    '#........S........#',
+    '#########X#########'],
+  andersen: [
+    '#####################',
+    '#....#.......#......#',
+    '#....#.......#..c...#',
+    '#....#.......#......#',
+    '##.###.......###.####',
+    '#...................#',
+    '#...................#',
+    '##.###.......###.####',
+    '#....#.......#......#',
+    '#....#...S...#......#',
+    '#########X###########'],
+  morrill: [
+    '#####################',
+    '#...................#',
+    '#.P...P...P...P...P.#',
+    '#...................#',
+    '#.....####.####.....#',
+    '#.P...#.......#...P.#',
+    '#.....#...c...#.....#',
+    '#.P...#.......#...P.#',
+    '#.....#########.....#',
+    '#...................#',
+    '#.........S.........#',
+    '##########X##########'],
+  stadium: [
+    '#######################',
+    '#.....................#',
+    '#.##########.########.#',
+    '#.#ggggggggggggggggg#.#',
+    '#.#ggggggggggggggggg#.#',
+    '#..ggggggggcgggggggg..#',
+    '#.#ggggggggggggggggg#.#',
+    '#.#ggggggggggggggggg#.#',
+    '#.##########.########.#',
+    '#..........S..........#',
+    '###########X###########'],
+  rec: [
+    '###################',
+    '#.......#.......c.#',
+    '#.BB.BB.#..BB.BB..#',
+    '#.......#.........#',
+    '#.BB.BB.#..BB.BB..#',
+    '#.......#.........#',
+    '#####.###.#####.###',
+    '#.................#',
+    '#.BB.BB.BB.BB.BBV.#',
+    '#.................#',
+    '#........S........#',
+    '#########X#########'],
+  sheldon: [
+    '###################',
+    '#.......#.........#',
+    '#.A...A.#.A...A.c.#',
+    '#.......#.........#',
+    '####.########.#####',
+    '#.................#',
+    '#.A...A.....A...A.#',
+    '#.................#',
+    '#####.#######.#####',
+    '#.................#',
+    '#........S........#',
+    '#########X#########'],
+  canfield: [
+    '#####################',
+    '#........RRR........#',
+    '#...................#',
+    '#LLLLLLLLLLLLLLLLL..#',
+    '#...................#',
+    '#..LLLLLLLLLLLLLLLLL#',
+    '#...................#',
+    '#LLLLLLLLLLLLLLLLL..#',
+    '#...................#',
+    '#.........S.........#',
+    '##########X##########'],
+};
+
+// outdoor campus (approximate + squished). x = east, z = south.
+const OW = 46, OH = 42;
+const BUILDINGS = [
+  { id: 'stadium', name: 'Memorial Stadium', x: 2, z: 2, w: 11, h: 13, hgt: 18, look: 'stadium', door: [7, 15], map: 'stadium', floor: 'concrete', wall: 0xb52a2a, wallH: 9, ceiling: false, coffee: true },
+  { id: 'rec', name: 'Campus Rec Center', x: 18, z: 2, w: 10, h: 6, hgt: 11, door: [22, 8], map: 'rec', floor: 'wood', wall: 0xdfe8f2, coffee: true },
+  { id: 'hamilton', name: 'Hamilton Hall', x: 32, z: 3, w: 5, h: 5, hgt: 15 },
+  { id: 'morrill', name: 'Morrill Hall', x: 19, z: 12, w: 8, h: 5, hgt: 10, door: [22, 17], map: 'morrill', floor: 'tile', wall: 0xeadfc4, coffee: true },
+  { id: 'avery', name: 'Avery Hall', x: 37, z: 12, w: 5, h: 6, hgt: 10 },
+  { id: 'burnett', name: 'Burnett Hall', x: 8, z: 19, w: 6, h: 4, hgt: 11 },
+  { id: 'love', name: 'Love Library', x: 18, z: 21, w: 9, h: 6, hgt: 13, door: [22, 27], map: 'love', floor: 'carpet', wall: 0xf2e6d0, wallH: 6, coffee: true },
+  { id: 'canfield', name: 'Canfield Admin (Registrar)', short: 'Registrar', x: 31, z: 21, w: 6, h: 5, hgt: 11, door: [33, 26], map: 'canfield', floor: 'tile', wall: 0xdfe6ff, registrar: true },
+  { id: 'sheldon', name: 'Sheldon Museum of Art', x: 8, z: 27, w: 6, h: 5, hgt: 9, look: 'white', door: [11, 32], map: 'sheldon', floor: 'wood', wall: 0xffffff, plain: true, coffee: true },
+  { id: 'oldfather', name: 'Oldfather Hall', x: 31, z: 28, w: 4, h: 3, hgt: 28 },
+  { id: 'union', name: 'Nebraska Union', x: 18, z: 33, w: 10, h: 6, hgt: 10, door: [22, 32], map: 'union', floor: 'checker', wall: 0xffffff, coffee: true },
+  { id: 'andersen', name: 'Andersen Hall', inside: 'Andersen Hall — 3rd Floor', x: 38, z: 32, w: 5, h: 5, hgt: 11, door: [37, 34], map: 'andersen', floor: 'gravel', wall: 0xffffff, coffee: true },
+];
+const PATHS = [[13, 9, 44, 9], [2, 16, 15, 16], [1, 18, 44, 18], [15, 9, 15, 32], [29, 9, 29, 32], [15, 28, 29, 28], [1, 32, 37, 32], [37, 27, 37, 36], [29, 27, 37, 27], [22, 8, 22, 11], [22, 17, 22, 20], [22, 27, 22, 32]];
+const SPAWN = [20, 30], CORN_START = [27, 30];
+
+/* =========================================================
+   zones + grid
+   ========================================================= */
+const zones = [];
+const FULL = new Set('#h@VTPRLBKA'.split(''));
+const ROUND = { t: 1.25, F: 1.9 };
+function buildZones() {
+  // outdoor
+  const cells = [], paint = [];
+  for (let z = 0; z < OH; z++) { cells.push(Array(OW).fill('.')); paint.push(Array(OW).fill(0)); }
+  for (let x = 0; x < OW; x++) { cells[0][x] = cells[OH - 1][x] = 'h'; }
+  for (let z = 0; z < OH; z++) { cells[z][0] = cells[z][OW - 1] = 'h'; }
+  for (const [x0, z0, x1, z1] of PATHS) for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) paint[z][x] = 1;
+  const bOf = [];
+  for (let z = 0; z < OH; z++) bOf.push(Array(OW).fill(null));
+  for (const b of BUILDINGS) for (let z = b.z; z < b.z + b.h; z++) for (let x = b.x; x < b.x + b.w; x++) { cells[z][x] = '@'; bOf[z][x] = b; }
+  cells[30][25] = 'F';
+  cells[24][16] = 'V'; cells[14][30] = 'V';
+  const out = { id: 'out', name: 'UNL City Campus', w: OW, h: OH, ox: 0, oz: 0, outdoor: true, cells, paint, bOf };
+  out.index = zones.push(out) - 1;
+  // trees: only where nothing solid is in the 8-neighbourhood, so nothing gets walled off
+  const tr = mulberry32(304);
+  for (let z = 2; z < OH - 2; z++) for (let x = 2; x < OW - 2; x++) {
+    if (cells[z][x] !== '.' || paint[z][x] || tr() > .16) continue;
+    let ok = true;
+    for (let dz = -1; dz <= 1 && ok; dz++) for (let dx = -1; dx <= 1; dx++) { const ch = cells[z + dz][x + dx]; if (ch !== '.' || paint[z + dz][x + dx]) { ok = false; break; } }
+    if (Math.abs(x - SPAWN[0]) + Math.abs(z - SPAWN[1]) < 3) ok = false;
+    if (ok) cells[z][x] = 't';
+  }
+  // interiors
+  let i = 0;
+  for (const b of BUILDINGS) {
+    if (!b.map) continue;
+    const rows = MAPS[b.map], w = Math.max(...rows.map(r => r.length));
+    const zc = rows.map(r => r.padEnd(w, '#').split(''));
+    const zn = { id: b.id, name: b.inside || b.name, w, h: zc.length, ox: 400 + i * 200, oz: 0, cells: zc, b, wallH: b.wallH || 5, ceiling: b.ceiling !== false };
+    zn.index = zones.push(zn) - 1; b.zone = zn; i++;
+  }
+}
+const cell = (zi, x, z) => { const zn = zones[zi]; if (x < 0 || z < 0 || x >= zn.w || z >= zn.h) return '#'; return zn.cells[z][x]; };
+const isWalk = (zi, x, z) => { const ch = cell(zi, x, z); return !FULL.has(ch) && !(ch in ROUND); };
+const wx = (zi, x) => zones[zi].ox + (x + .5) * C;
+const wz = (zi, z) => zones[zi].oz + (z + .5) * C;
+const toCell = (zi, X, Z) => [Math.floor((X - zones[zi].ox) / C), Math.floor((Z - zones[zi].oz) / C)];
+
+// teleports + graph
+let base = [], NN = 0, tele;
+const teleInfo = new Map(); // node -> {zi,x,z,yaw}
+const yawFrom = (dx, dz) => Math.atan2(-dx, -dz);
+function buildGraph() {
+  base = []; NN = 0; for (const zn of zones) { base.push(NN); NN += zn.w * zn.h; }
+  tele = new Int32Array(NN).fill(-1);
+  const out = zones[0];
+  for (const b of BUILDINGS) {
+    if (!b.door) continue;
+    const [dx, dz] = b.door;
+    let ox = 0, oz = 0;
+    if (dz === b.z + b.h) oz = 1; else if (dz === b.z - 1) oz = -1; else if (dx === b.x - 1) ox = -1; else ox = 1;
+    b.out = [ox, oz];
+    const zn = b.zone; let S, X;
+    for (let z = 0; z < zn.h; z++) for (let x = 0; x < zn.w; x++) { if (zn.cells[z][x] === 'S') S = [x, z]; if (zn.cells[z][x] === 'X') X = [x, z]; }
+    zn.S = S; zn.X = X;
+    const doorN = base[0] + dz * out.w + dx, sN = base[zn.index] + S[1] * zn.w + S[0];
+    const xN = base[zn.index] + X[1] * zn.w + X[0], arrN = base[0] + (dz + oz) * out.w + (dx + ox);
+    tele[doorN] = sN; tele[xN] = arrN;
+    teleInfo.set(doorN, { zi: zn.index, x: S[0], z: S[1], yaw: yawFrom(S[0] - X[0], S[1] - X[1]), enter: b });
+    teleInfo.set(xN, { zi: 0, x: dx + ox, z: dz + oz, yaw: yawFrom(ox, oz), leave: b });
+  }
+}
+const nodeOf = (zi, x, z) => base[zi] + z * zones[zi].w + x;
+function nodeXY(n) { let zi = zones.length - 1; while (base[zi] > n) zi--; const r = n - base[zi], w = zones[zi].w; return [zi, r % w, Math.floor(r / w)]; }
+function bfs(from, goal) {
+  if (from === goal) return [];
+  const prev = new Int32Array(NN).fill(-1); prev[from] = from;
+  const q = [from]; let qi = 0;
+  while (qi < q.length) {
+    const n = q[qi++];
+    if (n === goal) break;
+    const t = tele[n];
+    const push = m => { if (prev[m] === -1) { prev[m] = n; q.push(m); } };
+    if (t >= 0 && n !== from) { push(t); continue; }
+    const [zi, x, z] = nodeXY(n);
+    for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + ax, nz = z + az; const m = nodeOf(zi, clamp(nx, 0, zones[zi].w - 1), clamp(nz, 0, zones[zi].h - 1));
+      if (nx < 0 || nz < 0 || nx >= zones[zi].w || nz >= zones[zi].h) continue;
+      if (isWalk(zi, nx, nz) || m === goal) push(m);
+    }
+  }
+  if (prev[goal] === -1) return null;
+  const path = []; let n = goal; while (n !== from) { path.push(n); n = prev[n]; } return path.reverse();
+}
+
+/* =========================================================
+   three.js world
+   ========================================================= */
+const canvas = $('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+renderer.setPixelRatio(.5);
+renderer.setSize(innerWidth, innerHeight, false);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, .1, 260);
+camera.rotation.order = 'YXZ';
+scene.add(new THREE.AmbientLight(0xffffff, 1.9));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(.4, 1, .25); scene.add(sun);
+const SKY = new THREE.Color(0x8ec9ff), INDOOR = new THREE.Color(0xd8d6cc);
+scene.fog = new THREE.Fog(SKY, 40, 150); scene.background = SKY;
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+const lam = (map, color = 0xffffff) => new THREE.MeshLambertMaterial({ map, color, side: THREE.DoubleSide });
+class QuadBuilder {
+  constructor() { this.p = []; this.n = []; this.u = []; this.i = []; }
+  quad(a, b, c, d, nrm, uw = 1, vh = 1) {
+    const s = this.p.length / 3; this.p.push(...a, ...b, ...c, ...d);
+    for (let k = 0; k < 4; k++) this.n.push(...nrm);
+    this.u.push(0, 0, uw, 0, uw, vh, 0, vh); this.i.push(s, s + 1, s + 2, s, s + 2, s + 3);
+  }
+  mesh(mat) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(this.u, 2)); g.setIndex(this.i); return new THREE.Mesh(g, mat); }
+}
+function boxUV(geo, su, sv) { const uv = geo.attributes.uv; for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) { const i = f * 4 + k; uv.setXY(i, uv.getX(i) * su[f], uv.getY(i) * sv[f]); } uv.needsUpdate = true; }
+const DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+function edgeQuad(qb, x0, z0, dir, y0, y1, inset = 0) {
+  // face on edge of cell (x0,z0 = world min corner) toward dir
+  const x1 = x0 + C, z1 = z0 + C, [dx, dz] = dir, H = (y1 - y0) / C;
+  if (dz === -1) qb.quad([x0, y0, z0 - inset], [x1, y0, z0 - inset], [x1, y1, z0 - inset], [x0, y1, z0 - inset], [0, 0, -1], 1, H);
+  if (dz === 1) qb.quad([x1, y0, z1 + inset], [x0, y0, z1 + inset], [x0, y1, z1 + inset], [x1, y1, z1 + inset], [0, 0, 1], 1, H);
+  if (dx === -1) qb.quad([x0 - inset, y0, z1], [x0 - inset, y0, z0], [x0 - inset, y1, z0], [x0 - inset, y1, z1], [-1, 0, 0], 1, H);
+  if (dx === 1) qb.quad([x1 + inset, y0, z0], [x1 + inset, y0, z1], [x1 + inset, y1, z1], [x1 + inset, y1, z0], [1, 0, 0], 1, H);
+}
+
+const interact = []; // {zi, X, Z, kind}
+const propSprites = [];
+function buildOutdoor() {
+  const zn = zones[0], P = 8;
+  // ground texture
+  const gc = cvs(OW * P, OH * P), g = gc.getContext('2d');
+  speckle(g, gc.width, gc.height, [92, 158, 58], 34, rnd, { p: .08, cols: [[70, 130, 45], [120, 180, 80]] });
+  g.strokeStyle = '#d8c9a2'; g.lineWidth = 9; g.lineCap = 'round';
+  for (const [a, b, c2, d] of [[15, 18, 29, 28], [29, 18, 15, 28], [15, 9, 22, 17], [29, 9, 22, 17]]) line(g, (a + .5) * P, (b + .5) * P, (c2 + .5) * P, (d + .5) * P);
+  for (let z = 0; z < OH; z++) for (let x = 0; x < OW; x++) {
+    if (zn.paint[z][x]) { g.fillStyle = '#ddd0ac'; g.fillRect(x * P, z * P, P, P); g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(x * P, z * P, P, 1); }
+    if (zn.cells[z][x] === '@') { g.fillStyle = '#555'; g.fillRect(x * P, z * P, P, P); }
+  }
+  const gt = mkTex(gc, false);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(OW * C, OH * C), lam(gt));
+  ground.rotation.x = -Math.PI / 2; ground.position.set(OW * C / 2, 0, OH * C / 2); scene.add(ground);
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), lam(TX.asphalt)); boxUV2(road.geometry, 175);
+  road.rotation.x = -Math.PI / 2; road.position.set(OW * C / 2, -.05, OH * C / 2); scene.add(road);
+  // buildings
+  const roof = lam(TX.roof);
+  for (const b of BUILDINGS) {
+    const W = b.w * C, D = b.h * C, Hh = b.hgt;
+    const geo = new THREE.BoxGeometry(W, Hh, D);
+    boxUV(geo, [D / 8, D / 8, W / 8, W / 8, W / 8, W / 8], [Hh / 8, Hh / 8, D / 8, D / 8, Hh / 8, Hh / 8]);
+    const ft = b.look === 'stadium' ? TX.facadeStadium : b.look === 'white' ? TX.facadeWhite : TX.facadeRed;
+    const fm = lam(ft);
+    const m = new THREE.Mesh(geo, [fm, fm, roof, roof, fm, fm]);
+    m.position.set((b.x + b.w / 2) * C, Hh / 2, (b.z + b.h / 2) * C); scene.add(m);
+    // sign + door
+    let sx, sz, nx = 0, nz = 1;
+    if (b.door) { const [dx, dz] = b.door, [ox, oz] = b.out; nx = ox; nz = oz; sx = (dx + .5) * C - ox * C / 2; sz = (dz + .5) * C - oz * C / 2; }
+    else { sx = (b.x + b.w / 2) * C; sz = (b.z + b.h) * C; }
+    if (b.door) {
+      const d = new THREE.Mesh(new THREE.PlaneGeometry(3, 4), new THREE.MeshLambertMaterial({ map: TX.door }));
+      d.position.set(sx + nx * .06, 2, sz + nz * .06); d.rotation.y = Math.atan2(nx, nz); scene.add(d);
+    }
+    const label = b.coffee ? `${b.short || b.name} ☕` : (b.short || b.name);
+    const s = signSprite(b.registrar ? '★ REGISTRAR ★' : label, b.registrar ? '#e8b100' : b.door ? '#c8102e' : '#5a3a2a', b.registrar ? '#000' : '#fff', b.door ? 9 : 7);
+    s.position.set(sx + nx * .6, Math.min(Hh - 1, 5.6), sz + nz * .6); scene.add(s);
+  }
+  // hedges (border), trees, fountain, vending
+  const hedgeGeo = new THREE.BoxGeometry(C, 1.6, C), hedge = new THREE.InstancedMesh(hedgeGeo, lam(TX.hedge), 2 * (OW + OH));
+  let hi = 0; const mtx = new THREE.Matrix4();
+  const trees = [];
+  for (let z = 0; z < OH; z++) for (let x = 0; x < OW; x++) {
+    const ch = zn.cells[z][x];
+    if (ch === 'h') { mtx.makeTranslation((x + .5) * C, .8, (z + .5) * C); hedge.setMatrixAt(hi++, mtx); }
+    if (ch === 't') trees.push([x, z]);
+    if (ch === 'V') addVending(0, x, z);
+    if (ch === 'F') {
+      const f = new THREE.Group();
+      const basin = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.2, .8, 10), lam(TX.concrete)); basin.position.y = .4;
+      const water = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, .1, 10), new THREE.MeshBasicMaterial({ color: 0x4aa8ff })); water.position.y = .78;
+      const spout = new THREE.Mesh(new THREE.CylinderGeometry(.25, .35, 2.4, 6), lam(TX.concrete)); spout.position.y = 1.4;
+      f.add(basin, water, spout); f.position.set((x + .5) * C, 0, (z + .5) * C); scene.add(f);
+    }
+  }
+  hedge.count = hi; scene.add(hedge);
+  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.35, .45, 3, 5), new THREE.MeshLambertMaterial({ color: 0x6a4424, flatShading: true }), trees.length);
+  const leaves = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.3, 0), new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), trees.length);
+  const col = new THREE.Color();
+  trees.forEach(([x, z], k) => {
+    const jx = (rnd() - .5) * 1.2, jz = (rnd() - .5) * 1.2, s = .85 + rnd() * .4;
+    mtx.makeTranslation((x + .5) * C + jx, 1.5, (z + .5) * C + jz); trunk.setMatrixAt(k, mtx);
+    mtx.compose(new THREE.Vector3((x + .5) * C + jx, 3.9 * s, (z + .5) * C + jz), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rnd() * 6, 0)), new THREE.Vector3(s, s * 1.1, s));
+    leaves.setMatrixAt(k, mtx); leaves.setColorAt(k, col.setHSL(.27 + rnd() * .06, .55, .3 + rnd() * .1));
+  });
+  scene.add(trunk, leaves);
+}
+function boxUV2(geo, s) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * s, uv.getY(i) * s); }
+function addVending(zi, x, z) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(2.6, 4, 2.6), [lam(TX.vending), lam(TX.vending), new THREE.MeshLambertMaterial({ color: 0x8a0a1e }), new THREE.MeshLambertMaterial({ color: 0x8a0a1e }), lam(TX.vending), lam(TX.vending)]);
+  m.position.set(wx(zi, x), 2, wz(zi, z)); scene.add(m);
+  interact.push({ zi, X: wx(zi, x), Z: wz(zi, z), kind: 'vend' });
+}
+const FLOORS = () => ({ gravel: TX.gravel, carpet: TX.carpet, checker: TX.checker, wood: TX.wood, tile: TX.tile, concrete: TX.concrete });
+function buildInterior(zn) {
+  const b = zn.b, H = zn.wallH, walls = new QuadBuilder(), floor = new QuadBuilder(), turf = new QuadBuilder(), ceil = new QuadBuilder(), lights = new QuadBuilder();
+  let deskCells = [];
+  for (let z = 0; z < zn.h; z++) for (let x = 0; x < zn.w; x++) {
+    const ch = zn.cells[z][x], x0 = zn.ox + x * C, z0 = zn.oz + z * C;
+    if (ch === '#') {
+      for (const d of DIRS) { const n = cell(zn.index, x + d[0], z + d[1]); if (n !== '#' && !(x + d[0] < 0 || z + d[1] < 0 || x + d[0] >= zn.w || z + d[1] >= zn.h)) edgeQuad(walls, x0, z0, d, 0, H); }
+      continue;
+    }
+    const fq = ch === 'g' ? turf : floor;
+    fq.quad([x0, 0, z0 + C], [x0 + C, 0, z0 + C], [x0 + C, 0, z0], [x0, 0, z0], [0, 1, 0]);
+    if (zn.ceiling) { ceil.quad([x0, H, z0], [x0 + C, H, z0], [x0 + C, H, z0 + C], [x0, H, z0 + C], [0, -1, 0]); if (x % 3 === 1 && z % 2 === 1) lights.quad([x0 + .6, H - .03, z0 + 1.2], [x0 + 3.4, H - .03, z0 + 1.2], [x0 + 3.4, H - .03, z0 + 2.8], [x0 + .6, H - .03, z0 + 2.8], [0, -1, 0]); }
+    const cx = x0 + C / 2, cz = z0 + C / 2;
+    if (ch === 'X') {
+      for (const d of DIRS) { const nx = x + d[0], nz = z + d[1]; if (nx < 0 || nz < 0 || nx >= zn.w || nz >= zn.h) { edgeQuad(walls, x0, z0, d, 0, H, 0); const dm = new THREE.Mesh(new THREE.PlaneGeometry(3, 4), new THREE.MeshLambertMaterial({ map: TX.door })); dm.position.set(cx + d[0] * (C / 2 - .05), 2, cz + d[1] * (C / 2 - .05)); dm.rotation.y = Math.atan2(-d[0], -d[1]); scene.add(dm); const ex = signSprite('EXIT', '#fff', '#e01010', 2.6); ex.position.set(cx + d[0] * (C / 2 - .4), 4.4, cz + d[1] * (C / 2 - .4)); scene.add(ex); } }
+    }
+    if (ch === 'V') addVending(zn.index, x, z);
+    if (ch === 'T') { const t = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.1, 3.6), new THREE.MeshLambertMaterial({ color: 0xc89a4a })); t.position.set(cx, .55, cz); scene.add(t); }
+    if (ch === 'K') { const k = new THREE.Mesh(new THREE.BoxGeometry(C, 4.2, 3), lam(TX.books)); boxUV(k.geometry, [1, 1, 1, 1, 1, 1], [1.4, 1.4, 1, 1, 1.4, 1.4]); k.position.set(cx, 2.1, cz); scene.add(k); }
+    if (ch === 'B') { const k = new THREE.Mesh(new THREE.BoxGeometry(3, 1.6, 2.4), new THREE.MeshLambertMaterial({ color: 0x333a44 })); k.position.set(cx, .8, cz); scene.add(k); const bar = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, 3.4, 6), new THREE.MeshLambertMaterial({ color: 0xbbbbbb })); bar.rotation.z = Math.PI / 2; bar.position.set(cx, 2.1, cz); scene.add(bar); }
+    if (ch === 'P' || ch === 'A') { const p = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.4, 1.8), new THREE.MeshLambertMaterial({ color: 0xf4f1e8 })); p.position.set(cx, .7, cz); scene.add(p); const s = sprite(ch === 'P' ? fossilCanvas() : artCanvas(), 1.9, 1.9); s.position.set(cx, 1.4, cz); scene.add(s); }
+    if (ch === 'L') { for (const ox of [-1.6, 1.6]) { const post = new THREE.Mesh(new THREE.CylinderGeometry(.1, .2, 1.3, 6), new THREE.MeshLambertMaterial({ color: 0xd4af37 })); post.position.set(cx + ox, .65, cz); scene.add(post); } const rope = new THREE.Mesh(new THREE.BoxGeometry(C, .14, .14), new THREE.MeshLambertMaterial({ color: 0xc8102e })); rope.position.set(cx, 1.1, cz); scene.add(rope); }
+    if (ch === 'R') deskCells.push([x, z]);
+  }
+  if (deskCells.length) {
+    const [x0c, zc] = deskCells[0], x1c = deskCells[deskCells.length - 1][0];
+    const mx = (wx(zn.index, x0c) + wx(zn.index, x1c)) / 2, mz = wz(zn.index, zc);
+    const desk = new THREE.Mesh(new THREE.BoxGeometry((x1c - x0c + 1) * C, 1.4, 2.2), new THREE.MeshLambertMaterial({ color: 0x7a4a22 })); desk.position.set(mx, .7, mz + .6); scene.add(desk);
+    const clerk = sprite(clerkCanvas(), 1.8, 2.7); clerk.position.set(mx, .2, mz - .9); scene.add(clerk);
+    const sg = signSprite('★ REGISTRAR ★', '#e8b100', '#000', 6); sg.position.set(mx, 4.2, mz - .5); scene.add(sg);
+    interact.push({ zi: zn.index, X: mx, Z: mz + .6, kind: 'registrar', r: 7 });
+  }
+  const F = FLOORS();
+  const wallMat = lam(b.plain ? TX.plain : TX.brick, b.wall);
+  scene.add(walls.mesh(wallMat), floor.mesh(lam(F[b.floor])));
+  if (turf.p.length) scene.add(turf.mesh(lam(TX.turf)));
+  if (zn.ceiling) { scene.add(ceil.mesh(lam(TX.ceiling)), lights.mesh(new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }))); }
+  if (b.id === 'stadium') { const s = signSprite('GO BIG RED!', '#c8102e', '#fff', 14); s.position.set(zn.ox + zn.w * C / 2, 7.5, zn.oz + 1.4 * C); scene.add(s); }
+  if (b.id === 'andersen') { const s = signSprite('3RD FLOOR', '#fff', '#000', 5); s.position.set(wx(zn.index, 9), 3.8, wz(zn.index, 5) - 1); scene.add(s); }
+}
+
+/* =========================================================
+   audio (all synthesized)
+   ========================================================= */
+let AC = null, master;
+function initAudio() { if (AC) { AC.resume(); return; } try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = .55; master.connect(AC.destination); } catch (e) {} }
+function tone(f, d, type = 'square', vol = .2, slide = 0, delay = 0) { if (!AC) return; const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g).connect(master); o.start(t); o.stop(t + d + .02); }
+function noise(d, vol = .3, freq = 1500, q = 1, type = 'bandpass', delay = 0) { if (!AC) return; const t = AC.currentTime + delay, len = Math.floor(AC.sampleRate * d), buf = AC.createBuffer(1, len, AC.sampleRate), ch = buf.getChannelData(0); for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len); const s = AC.createBufferSource(); s.buffer = buf; const f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q; const g = AC.createGain(); g.gain.value = vol; s.connect(f).connect(g).connect(master); s.start(t); }
+const SFX = {
+  pop: (v, muffled) => { noise(.07, .9 * v, muffled ? 500 : 1800, muffled ? 1 : 2.5); tone(muffled ? 300 : 700, .08, 'sine', .5 * v, -400); },
+  text: () => { tone(1046, .07, 'sine', .18); tone(1568, .09, 'sine', .15, 0, .07); },
+  coin: () => { tone(988, .08, 'square', .12); tone(1319, .22, 'square', .12, 0, .08); },
+  buzz: () => { tone(110, .45, 'sawtooth', .22); tone(116, .45, 'square', .12); },
+  slurp: () => { noise(.35, .4, 900, 1, 'lowpass'); tone(400, .3, 'sine', .1, 300); },
+  glitch: () => { for (let i = 0; i < 8; i++) tone(100 + Math.random() * 1200, .04, 'square', .1, 0, i * .04); },
+  splat: () => { noise(.25, .6, 600, 1, 'lowpass'); },
+  slip: () => { tone(300, .5, 'sine', .25, 900); },
+  zoom: () => { tone(200, .4, 'sawtooth', .1, 600); },
+  vend: () => { tone(300, .06, 'square', .1); noise(.2, .3, 300, 1, 'lowpass', .1); tone(660, .1, 'square', .08, 0, .3); },
+  door: () => { noise(.12, .3, 400, 1, 'lowpass'); tone(160, .1, 'sine', .15); },
+  scare: () => { tone(90, 1.1, 'sawtooth', .35, -50); tone(95, 1.1, 'square', .2, -45); noise(.9, .5, 800, .5); },
+  win: () => { [523, 659, 784, 1046, 784, 1046].forEach((f, i) => tone(f, .2, 'square', .12, 0, i * .13)); },
+};
+
+/* =========================================================
+   game state
+   ========================================================= */
+const S = { mode: 'title' };
+const keys = {};
+let coffees = [], ground = [], projectiles = [];
+const corn = { zi: 0, X: 0, Z: 0, path: [], budget: 0, timer: 0, stun: 0, wander: null, wait: 0, frame: 0, anim: 0, squash: 0, greet: 0 };
+let cornSprite, cornTex = {};
+let coffeeCanvasCache;
+
+function resetGame() {
+  for (const o of [...coffees, ...ground, ...projectiles]) if (o.sprite) scene.remove(o.sprite);
+  coffees = []; ground = []; projectiles = [];
+  Object.assign(S, { zi: 0, px: wx(0, SPAWN[0]), pz: wz(0, SPAWN[1]), yaw: 0, pitch: 0, stamina: 100, coffees: 0, quarters: 0, anger: 0, inv: [null, null, null], sel: 0, scooter: 0, time: 0, doorCD: 0, wrong: 0, right: 0, qpool: shuffle(QUESTIONS.slice()), chasing: false });
+  for (const zn of zones) {
+    if (!zn.b) continue;
+    for (let z = 0; z < zn.h; z++) for (let x = 0; x < zn.w; x++) if (zn.cells[z][x] === 'c') {
+      const s = sprite(coffeeCanvasCache, 1.3, 1.95); s.position.set(wx(zn.index, x), .4, wz(zn.index, z)); scene.add(s);
+      coffees.push({ zi: zn.index, X: wx(zn.index, x), Z: wz(zn.index, z), sprite: s, b: zn.b, taken: false });
+    }
+  }
+  // ground items on paths, away from the start
+  const out = zones[0], spots = [];
+  for (let z = 1; z < OH - 1; z++) for (let x = 1; x < OW - 1; x++) if (out.paint[z][x] && out.cells[z][x] === '.' && Math.abs(x - SPAWN[0]) + Math.abs(z - SPAWN[1]) > 6) spots.push([x, z]);
+  shuffle(spots);
+  ['butter', 'butter', 'bierock', 'scooter', 'butter', 'bierock'].forEach((t, i) => spawnItem(0, spots[i][0], spots[i][1], t));
+  Object.assign(corn, { zi: 0, X: wx(0, CORN_START[0]), Z: wz(0, CORN_START[1]), path: [], budget: 0, timer: 0, stun: 0, wander: null, wait: 1, greet: 0 });
+  setCornLook();
+  updateHUD(); drawPortrait($('face'), 0); drawPortrait($('phFace'), 0); $('chat').innerHTML = '';
+  $('faceWrap').classList.remove('mad'); $('faceTxt').textContent = 'Cornelius 🙂';
+}
+function spawnItem(zi, x, z, type) {
+  const s = sprite(itemCanvas(type), 1.4, 1.4); s.position.set(wx(zi, x), .3, wz(zi, z)); scene.add(s);
+  ground.push({ zi, X: wx(zi, x), Z: wz(zi, z), type, sprite: s });
+}
+
+/* =========================================================
+   questions (comically easy on purpose)
+   ========================================================= */
+const QUESTIONS = [
+  { q: 'What does the "L" in UNL stand for?', a: ['Lincoln', 'Lasagna', 'Left'] },
+  { q: 'What color do Husker fans wear on game day?', a: ['Red', 'Plaid', 'Invisible'] },
+  { q: 'Memorial Stadium is mostly used for…', a: ['Football', 'Storing my feelings', 'Competitive napping'] },
+  { q: 'The Love Library is full of…', a: ['Books', 'Bees', 'Soup'] },
+  { q: 'The UNIVERSITY OF NEBRASKA–Lincoln is in which state?', a: ['Nebraska', 'Atlantis', 'The Moon'] },
+  { q: 'Nebraska\'s football team is called the…', a: ['Cornhuskers', 'Cornflakes', 'Corn Dogs'] },
+  { q: 'The Sheldon Museum of ___', a: ['Art', 'Fart', 'Dart'] },
+  { q: 'What do you do at the Campus REC Center?', a: ['Exercise', 'File taxes', 'Hibernate'] },
+  { q: 'Which office do you visit to graduate? (It\'s in the instructions.)', a: ['The Registrar', 'The Bermuda Triangle', 'A random closet'] },
+  { q: 'Andersen HALL is a…', a: ['Building', 'Submarine', 'Sandwich'] },
+  { q: 'What goes inside a coffee cup?', a: ['Coffee', 'Gravel', 'A small horse'] },
+  { q: 'What does the "U" in UNL stand for?', a: ['University', 'Ukulele', 'Unicorn'] },
+  { q: 'Who is texting you these questions right now?', a: ['Cornelius', 'Abraham Lincoln', 'A haunted toaster'] },
+  { q: 'How many coffees do you need to graduate?', a: ['7', '7,000', 'Negative 3'] },
+  { q: 'Morrill Hall is a museum. What\'s in a museum?', a: ['Old cool stuff', 'Lava', 'My ex'] },
+  { q: 'The Nebraska UNION is where students…', a: ['Eat & hang out', 'Launch rockets', 'Hide from geese'] },
+  { q: 'Nebraska is nicknamed the ___husker State.', a: ['Corn', 'Spoon', 'Tuxedo'] },
+  { q: 'College football season happens in the…', a: ['Fall', 'Shark Week', 'Never'] },
+  { q: 'What am I made of? 🌽', a: ['Corn', 'Lasers', 'Broccoli'] },
+  { q: 'Grass on campus is usually what color?', a: ['Green', 'Purple', 'Spicy'] },
+  { q: 'You walk into class. What do you sit on?', a: ['A chair', 'A cactus', 'A canoe'] },
+];
+const PRAISE = ['That\'s a-MAIZE-ing! 🌽', 'Corn-gratulations!', 'Ear-resistible work!', 'Kernel of truth! Correct!', 'Pop pop! You got it!', 'You\'re on the cob, Husker!', 'Shucks, you\'re smart!'];
+const MAD = 'I GET ANGRIER AND ANGRIER AT ALL THE QUESTIONS YOU GET WRONG';
+const GLYPH = '█▓▒░#@%&¿¡ΣΩ¥ʞɹɐ∆◊§¶';
+function jumble(s) { let o = ''; for (const ch of s) { const r = rnd(); if (ch === ' ') o += r < .3 ? '' : ' '; else if (r < .38) o += GLYPH[Math.floor(rnd() * GLYPH.length)]; else if (r < .5) o += ch.toUpperCase() + '̶'; else o += ch; } return o; }
+
+/* =========================================================
+   phone
+   ========================================================= */
+const chat = $('chat');
+let answerResolve = null, contResolve = null;
+function bubble(html, cls) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; }
+async function cornSays(html, cls = '') {
+  const t = bubble('<span class="typing">• • •</span>', 'them ' + cls);
+  await sleep(380 + Math.min(700, html.length * 9));
+  t.innerHTML = html; SFX.text(); chat.scrollTop = chat.scrollHeight; await sleep(220);
+}
+function waitAnswer(opts, glitchy) {
+  const box = $('phOpts'); box.innerHTML = '';
+  opts.forEach((o, i) => { const b = document.createElement('button'); b.className = 'btn95' + (glitchy ? ' glitchy' : ''); b.textContent = `[${i + 1}] ${o}`; b.onclick = () => answer(i); box.appendChild(b); });
+  chat.scrollTop = chat.scrollHeight;
+  return new Promise(r => { answerResolve = r; });
+}
+function answer(i) { if (!answerResolve) return; const r = answerResolve; answerResolve = null; $('phOpts').innerHTML = ''; r(i); }
+function waitContinue(label) { const b = $('phCont'); b.textContent = label || 'Keep going ▶ (Enter)'; b.classList.remove('hidden'); return new Promise(r => { contResolve = r; }); }
+function doContinue() { if (!contResolve) return; const r = contResolve; contResolve = null; $('phCont').classList.add('hidden'); lockPointer(); r(); }
+$('phCont').onclick = doContinue;
+function openPhone() { S.mode = 'phone'; for (const k in keys) keys[k] = false; if (document.pointerLockElement) document.exitPointerLock(); $('phone').classList.remove('hidden'); $('prompt').classList.add('hidden'); }
+function closePhone() { $('phone').classList.add('hidden'); if (S.mode === 'phone') S.mode = 'play'; }
+
+async function introText() {
+  openPhone();
+  await cornSays('Howdy, Husker! 🌽 It\'s me, <b>Cornelius</b>, your friendly campus helper!');
+  await cornSays('To graduate, bring <b>7 Dunkin\' coffees ☕</b> to the <b>Registrar</b> in Canfield Admin.');
+  await cornSays('Coffees are hidden inside buildings with a ☕ on the sign. Press <b>M</b> for a map!');
+  await cornSays('Every time you grab one, I\'ll text you 3 super easy campus questions. Easy peasy, corn-on-the-cob squeezy!');
+  await cornSays('Just… try not to get any wrong. 🙂');
+  await waitContinue('Let\'s go! ▶ (Enter)');
+  closePhone();
+}
+async function questionSet(n) {
+  openPhone();
+  SFX.slurp();
+  await cornSays(n === 1 ? `Ooh, your first coffee! ☕ 1/7! Pop quiz time!` : `☕ ${n}/7! Here come your questions!`);
+  let wrongThisSet = 0;
+  for (let q = 0; q < 3; q++) {
+    const jumbled = n >= 2 && q === 2;
+    let text, opts, correct = -1;
+    if (jumbled) {
+      const src = pick(QUESTIONS);
+      text = jumble(src.q) + ' ' + jumble('??? ') + '🌽';
+      opts = shuffle(src.a.slice()).map(jumble);
+      SFX.glitch();
+      await cornSays(`Q${q + 1}: ${escapeHTML(text)}`, 'glitch');
+    } else {
+      if (!S.qpool.length) S.qpool = shuffle(QUESTIONS.slice());
+      const Q = S.qpool.pop();
+      opts = shuffle(Q.a.slice()); correct = opts.indexOf(Q.a[0]); text = Q.q;
+      await cornSays(`Q${q + 1}: ${escapeHTML(text)}`);
+    }
+    const a = await waitAnswer(opts, jumbled);
+    bubble(escapeHTML(opts[a]), 'me');
+    await sleep(250);
+    if (a === correct) {
+      S.quarters++; S.right++; SFX.coin(); updateHUD();
+      await cornSays(`${pick(PRAISE)} Here\'s a quarter! 🪙`);
+    } else {
+      S.anger++; S.wrong++; wrongThisSet++; SFX.buzz(); setMood();
+      await cornSays(MAD, 'mad');
+    }
+  }
+  if (S.anger > 0 && !S.chasing) { S.chasing = true; setCornLook(); await cornSays('…I\'m coming to find you, Husker. 🌽', 'mad'); corn.timer = 1.2; }
+  else if (wrongThisSet && S.chasing) await cornSays(pick(['I\'m getting closer. 🌽', 'Pop… pop… pop… 🌽', 'Run faster, Husker.']), 'mad');
+  else if (!S.chasing) await cornSays('Wow, perfect score! You\'re so smart! 😊');
+  if (n === 7) await cornSays(S.chasing ? 'That\'s all 7. Get them to the Registrar in Canfield Admin… if you can. 🌽' : 'That\'s all 7! Go see the Registrar in Canfield Admin to graduate! 🎓');
+  await waitContinue();
+  closePhone();
+}
+const escapeHTML = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* =========================================================
+   cornelius
+   ========================================================= */
+function setCornLook() { corn.anim = 0; }
+function setMood() {
+  const m = S.anger === 0 ? 0 : S.anger < 4 ? 1 : 2;
+  drawPortrait($('face'), m); drawPortrait($('phFace'), m);
+  $('faceWrap').classList.toggle('mad', S.anger > 0);
+  $('faceTxt').textContent = S.anger === 0 ? 'Cornelius 🙂' : `Anger: ${'🌽'.repeat(Math.min(S.anger, 8))}`;
+}
+function stepInterval() { return 1.75 / (1 + .22 * (S.anger - 1)); }
+function stepLen() { return 2.5 + .1 * (S.anger - 1); }
+function updateCorn(dt) {
+  const frameKey = S.chasing ? ((corn.anim | 0) % 2 ? 'reach2' : 'reach1') : ((corn.anim | 0) % 2 ? 'wave2' : 'wave1');
+  const moodK = S.chasing ? (S.anger >= 4 ? 2 : 1) : 0;
+  const tk = frameKey + moodK;
+  if (cornSprite.material.map !== cornTex[tk]) { cornSprite.material.map = cornTex[tk]; cornSprite.material.needsUpdate = true; }
+  corn.squash = Math.max(0, corn.squash - dt * 4);
+  cornSprite.scale.set(3.6 * (1 + corn.squash * .12), 5.4 * (1 - corn.squash * .12), 1);
+  cornSprite.material.rotation = corn.stun > 0 ? Math.sin(S.time * 18) * .5 : 0;
+  cornSprite.position.set(corn.X, 0, corn.Z);
+
+  if (!S.chasing) {
+    corn.anim += dt * 2.2;
+    // friendly wander near the start
+    if (corn.wait > 0) { corn.wait -= dt; }
+    else if (!corn.wander) {
+      const [cx, cz] = toCell(0, corn.X, corn.Z), d = pick(DIRS), nx = cx + d[0], nz = cz + d[1];
+      if (isWalk(0, nx, nz) && Math.abs(nx - CORN_START[0]) + Math.abs(nz - CORN_START[1]) < 6 && tele[nodeOf(0, nx, nz)] < 0) corn.wander = [wx(0, nx), wz(0, nz)];
+      else corn.wait = .3;
+    } else {
+      const dx = corn.wander[0] - corn.X, dz = corn.wander[1] - corn.Z, d = Math.hypot(dx, dz), sp = 1.6 * dt;
+      if (d <= sp) { corn.X = corn.wander[0]; corn.Z = corn.wander[1]; corn.wander = null; corn.wait = 1 + rnd() * 2.5; }
+      else { corn.X += dx / d * sp; corn.Z += dz / d * sp; }
+    }
+    corn.greet -= dt;
+    if (corn.zi === S.zi && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 6 && corn.greet <= 0) { toast(pick(['Cornelius: Howdy, Husker! 🌽', 'Cornelius: Go get those coffees! ☕', 'Cornelius: I believe in you! 😊'])); corn.greet = 12; }
+    return;
+  }
+  if (corn.stun > 0) { corn.stun -= dt; return; }
+  corn.timer -= dt;
+  if (corn.timer <= 0) {
+    corn.timer = stepInterval(); corn.budget = stepLen(); corn.squash = 1; corn.anim++;
+    const same = corn.zi === S.zi, dist = same ? Math.hypot(corn.X - S.px, corn.Z - S.pz) : 999;
+    SFX.pop(same ? Math.max(.12, 1 - dist / 90) : .25, !same);
+    const [cx, cz] = toCell(corn.zi, corn.X, corn.Z), [px, pz] = toCell(S.zi, S.px, S.pz);
+    const p = bfs(nodeOf(corn.zi, cx, cz), nodeOf(S.zi, px, pz));
+    corn.path = p || [];
+  }
+  let move = Math.min(corn.budget, dt * 26);
+  while (move > 1e-4) {
+    if (!corn.path.length) {
+      if (corn.zi === S.zi) { const dx = S.px - corn.X, dz = S.pz - corn.Z, d = Math.hypot(dx, dz); if (d > .5) { const m = Math.min(move, d - .5); corn.X += dx / d * m; corn.Z += dz / d * m; corn.budget -= m; } }
+      break;
+    }
+    const n = corn.path[0], [zi, x, z] = nodeXY(n);
+    if (zi !== corn.zi) { corn.zi = zi; corn.X = wx(zi, x); corn.Z = wz(zi, z); corn.path.shift(); continue; }
+    const tx = wx(zi, x), tz = wz(zi, z), dx = tx - corn.X, dz = tz - corn.Z, d = Math.hypot(dx, dz);
+    if (d <= move) { corn.X = tx; corn.Z = tz; move -= d; corn.budget -= d; corn.path.shift(); }
+    else { corn.X += dx / d * move; corn.Z += dz / d * move; corn.budget -= move; move = 0; }
+  }
+  if (corn.zi === S.zi && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 2.3) caught();
+}
+
+/* =========================================================
+   player
+   ========================================================= */
+function blocked(zi, X, Z) {
+  const [cx, cz] = toCell(zi, X, Z), zn = zones[zi];
+  for (let z = cz - 1; z <= cz + 1; z++) for (let x = cx - 1; x <= cx + 1; x++) {
+    const ch = cell(zi, x, z);
+    if (FULL.has(ch)) {
+      const x0 = zn.ox + x * C, z0 = zn.oz + z * C;
+      const nx = clamp(X, x0, x0 + C), nz = clamp(Z, z0, z0 + C);
+      if ((X - nx) ** 2 + (Z - nz) ** 2 < PR * PR) return true;
+    } else if (ch in ROUND) {
+      if (Math.hypot(X - wx(zi, x), Z - wz(zi, z)) < ROUND[ch] + PR) return true;
+    }
+  }
+  return false;
+}
+function updatePlayer(dt) {
+  if (keys.ArrowLeft) S.yaw += 2.4 * dt;
+  if (keys.ArrowRight) S.yaw -= 2.4 * dt;
+  let f = 0, s = 0;
+  if (keys.KeyW || keys.ArrowUp) f++; if (keys.KeyS || keys.ArrowDown) f--;
+  if (keys.KeyD) s++; if (keys.KeyA) s--;
+  if (TOUCH.joy) { f -= TOUCH.jy; s += TOUCH.jx; }
+  const moving = Math.hypot(f, s) > .08;
+  let speed = WALK;
+  if (S.scooter > 0) { S.scooter -= dt; speed = SCOOT; }
+  else if ((keys.ShiftLeft || keys.ShiftRight || TOUCH.run) && moving && S.stamina > 0) { speed = RUN; S.stamina = Math.max(0, S.stamina - 24 * dt); }
+  else S.stamina = Math.min(100, S.stamina + (moving ? 10 : 18) * dt);
+  if (moving) {
+    const len = Math.max(1, Math.hypot(f, s)), fx = -Math.sin(S.yaw), fz = -Math.cos(S.yaw), rx = Math.cos(S.yaw), rz = -Math.sin(S.yaw);
+    const vx = (fx * f + rx * s) / len * speed * dt, vz = (fz * f + rz * s) / len * speed * dt;
+    if (!blocked(S.zi, S.px + vx, S.pz)) S.px += vx;
+    if (!blocked(S.zi, S.px, S.pz + vz)) S.pz += vz;
+  }
+  // doors
+  S.doorCD -= dt;
+  const [cx, cz] = toCell(S.zi, S.px, S.pz), n = nodeOf(S.zi, cx, cz), ti = teleInfo.get(n);
+  if (ti && S.doorCD <= 0) {
+    S.doorCD = .6; SFX.door();
+    $('fade').style.opacity = 1; setTimeout(() => { $('fade').style.opacity = 0; }, 140);
+    S.zi = ti.zi; S.px = wx(ti.zi, ti.x); S.pz = wz(ti.zi, ti.z); S.yaw = ti.yaw;
+    const zn = zones[S.zi];
+    scene.fog.color.copy(zn.outdoor ? SKY : INDOOR); scene.background = zn.outdoor || !zn.ceiling ? SKY : INDOOR;
+    scene.fog.near = zn.outdoor ? 40 : 20; scene.fog.far = zn.outdoor ? 150 : 75;
+    $('where').textContent = zn.name;
+    if (ti.enter) banner(zn.name);
+  }
+  camera.position.set(S.px, EYE + (moving ? Math.sin(S.time * (speed > WALK ? 14 : 10)) * .06 : 0), S.pz);
+  camera.rotation.y = S.yaw; camera.rotation.x = S.pitch;
+}
+function pickups() {
+  for (const c of coffees) {
+    if (c.taken || c.zi !== S.zi) continue;
+    c.sprite.position.y = .4 + Math.sin(S.time * 3) * .2;
+    if (Math.hypot(c.X - S.px, c.Z - S.pz) < 1.9) {
+      c.taken = true; scene.remove(c.sprite); S.coffees++; updateHUD();
+      questionSet(S.coffees);
+      return;
+    }
+  }
+  for (let i = ground.length - 1; i >= 0; i--) {
+    const it = ground[i]; if (it.zi !== S.zi) continue;
+    it.sprite.position.y = .3 + Math.sin(S.time * 3 + i) * .15;
+    if (Math.hypot(it.X - S.px, it.Z - S.pz) < 1.8) {
+      const slot = S.inv.indexOf(null);
+      if (slot < 0) { if (!it.full) { toast('Your pockets are full!'); it.full = true; } continue; }
+      S.inv[slot] = it.type; scene.remove(it.sprite); ground.splice(i, 1); SFX.coin(); toast(`Got: ${ITEMS[it.type].name} — ${ITEMS[it.type].tip}`); updateHUD();
+    } else it.full = false;
+  }
+}
+function nearestInteract() {
+  let best = null, bd = 1e9;
+  for (const it of interact) { if (it.zi !== S.zi) continue; const d = Math.hypot(it.X - S.px, it.Z - S.pz); if (d < (it.r || 4.2) && d < bd) { bd = d; best = it; } }
+  return best;
+}
+function doInteract() {
+  const it = nearestInteract(); if (!it) return;
+  if (it.kind === 'vend') {
+    if (S.quarters < 1) { toast('SNAX machine: insert 1 quarter. (Earn quarters with right answers!)'); SFX.buzz(); return; }
+    const slot = S.inv.indexOf(null); if (slot < 0) { toast('Your pockets are full!'); return; }
+    S.quarters--; const t = pick(['butter', 'butter', 'bierock', 'scooter']); S.inv[slot] = t; SFX.vend(); toast(`Clunk! ${ITEMS[t].name} — ${ITEMS[t].tip}`); updateHUD();
+  }
+  if (it.kind === 'registrar') {
+    if (S.coffees >= 7) win();
+    else { toast(`Registrar: "I need 7 coffees to process your graduation. You have ${S.coffees}."`); SFX.buzz(); }
+  }
+}
+function useItem() {
+  const t = S.inv[S.sel]; if (!t) return;
+  S.inv[S.sel] = null; updateHUD();
+  if (t === 'bierock') { S.stamina = 100; SFX.coin(); toast('Mmm, bierock. Stamina refilled!'); }
+  if (t === 'scooter') { S.scooter = 8; SFX.zoom(); toast('ZOOM! E-scooter for 8 seconds!'); }
+  if (t === 'butter') {
+    const s = sprite(itemCanvas('butter'), .9, .9, false); s.position.set(S.px, 1.6, S.pz); scene.add(s);
+    projectiles.push({ zi: S.zi, X: S.px, Z: S.pz, vx: -Math.sin(S.yaw) * 28, vz: -Math.cos(S.yaw) * 28, life: 1.1, sprite: s });
+    SFX.zoom();
+  }
+}
+function updateProjectiles(dt) {
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i]; p.life -= dt; p.X += p.vx * dt; p.Z += p.vz * dt; p.sprite.position.set(p.X, 1.6, p.Z); p.sprite.material.rotation += dt * 12;
+    let done = p.life <= 0;
+    if (!done && blocked(p.zi, p.X, p.Z)) { done = true; SFX.splat(); }
+    if (!done && corn.zi === p.zi && Math.hypot(corn.X - p.X, corn.Z - p.Z) < 2.2) {
+      done = true; SFX.splat();
+      if (S.chasing) { corn.stun = 6; SFX.slip(); toast('Cornelius slipped on the butter! 🧈'); }
+      else toast('Cornelius: Hey! Butter is for AFTER I\'m grilled! 😅');
+    }
+    if (done) { scene.remove(p.sprite); projectiles.splice(i, 1); }
+  }
+}
+
+/* =========================================================
+   HUD
+   ========================================================= */
+const itemIcons = {};
+function updateHUD() {
+  $('count').textContent = `☕ ${S.coffees}/7 Coffees`;
+  $('quarters').textContent = `🪙 × ${S.quarters}`;
+  const slots = $('slots'); slots.innerHTML = '';
+  S.inv.forEach((t, i) => { const d = document.createElement('div'); d.className = 'slot' + (i === S.sel ? ' sel' : ''); d.innerHTML = `<b>${i + 1}</b>` + (t ? `<img alt="" src="${itemIcons[t]}">` : ''); slots.appendChild(d); });
+  const t = S.inv[S.sel]; $('invName').textContent = t ? ITEMS[t].name : 'Nothing';
+}
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); toastT = 3.2; }
+let bannerT = 0;
+function banner(msg) { const b = $('banner'); b.textContent = msg; b.style.opacity = 1; bannerT = 1.8; }
+function drawMap() {
+  const c = $('mapC'), g = c.getContext('2d'), P = 10, out = zones[0];
+  g.fillStyle = '#4f8f33'; g.fillRect(0, 0, c.width, c.height);
+  for (let z = 0; z < OH; z++) for (let x = 0; x < OW; x++) {
+    const ch = out.cells[z][x];
+    if (out.paint[z][x]) { g.fillStyle = '#e2d6b0'; g.fillRect(x * P, z * P, P, P); }
+    if (ch === 'h') { g.fillStyle = '#2a5a22'; g.fillRect(x * P, z * P, P, P); }
+    if (ch === 't') { g.fillStyle = '#2f6e25'; g.beginPath(); g.arc(x * P + 5, z * P + 5, 4, 0, 7); g.fill(); }
+    if (ch === 'V') { g.fillStyle = '#c8102e'; g.fillRect(x * P + 2, z * P + 2, 6, 6); }
+  }
+  g.font = `bold 11px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (const b of BUILDINGS) {
+    const got = b.coffee && coffees.find(c => c.b === b)?.taken;
+    g.fillStyle = b.registrar ? '#e8b100' : b.coffee ? (got ? '#8a6a6a' : '#c8102e') : '#7a5444';
+    g.fillRect(b.x * P, b.z * P, b.w * P, b.h * P); g.strokeStyle = '#000'; g.lineWidth = 2; g.strokeRect(b.x * P, b.z * P, b.w * P, b.h * P);
+    if (S.zi === b.zone?.index) { g.strokeStyle = '#fff'; g.lineWidth = 4; g.strokeRect(b.x * P - 3, b.z * P - 3, b.w * P + 6, b.h * P + 6); }
+    g.fillStyle = b.registrar ? '#000' : '#fff';
+    const nm = (b.short || b.name).replace(' Museum of Art', '').replace('Campus ', '').replace('Memorial ', '');
+    const mark = b.registrar ? '★ ' : b.coffee ? (got ? '✓ ' : '☕ ') : '';
+    g.fillText(mark + nm, (b.x + b.w / 2) * P, (b.z + b.h / 2) * P);
+    if (b.door) { g.fillStyle = '#ffef7a'; g.fillRect(b.door[0] * P + 2, b.door[1] * P + 2, 6, 6); }
+  }
+  if (S.zi === 0) {
+    const x = S.px / C * P, z = S.pz / C * P;
+    g.save(); g.translate(x, z); g.rotate(-S.yaw); g.fillStyle = '#1f7aff'; g.strokeStyle = '#fff'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(0, -9); g.lineTo(6, 6); g.lineTo(-6, 6); g.closePath(); g.fill(); g.stroke(); g.restore();
+  }
+}
+
+/* =========================================================
+   end states
+   ========================================================= */
+const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+const CAUGHT_LINES = ['Your enrollment has been… husked. 🌽', 'You have been composted.', 'Should\'ve studied. Pop pop.', 'Office hours are OVER.', 'Detention. In a corn maze. Forever.'];
+function caught() {
+  S.mode = 'over'; if (document.pointerLockElement) document.exitPointerLock();
+  SFX.scare(); $('hud').classList.add('hidden');
+  const sc = $('scareC'); const src = cornCanvas(2, 'reach2'); const g = sc.getContext('2d'); g.clearRect(0, 0, 256, 320); g.drawImage(src, 0, 0, 256, 320, 0, 0, 256, 320);
+  $('scare').classList.remove('hidden');
+  setTimeout(() => {
+    $('scare').classList.add('hidden');
+    drawPortrait($('overFace'), 2);
+    $('overLine').textContent = pick(CAUGHT_LINES);
+    $('overStats').textContent = `Coffees: ${S.coffees}/7 · Wrong answers: ${S.wrong} · Time: ${fmt(S.time)}`;
+    $('overWin').classList.remove('hidden'); $('retryBtn').focus();
+  }, 1300);
+}
+function win() {
+  S.mode = 'win'; if (document.pointerLockElement) document.exitPointerLock();
+  SFX.win(); $('hud').classList.add('hidden');
+  let best = null; try { best = parseFloat(localStorage.getItem('cornelius-best')); if (!best || S.time < best) { localStorage.setItem('cornelius-best', S.time); best = S.time; } } catch (e) {}
+  $('winStats').innerHTML = `Time: <b>${fmt(S.time)}</b>${best ? ` (best ${fmt(best)})` : ''} · Right answers: ${S.right} · Cornelius anger: ${S.anger ? '🌽'.repeat(Math.min(S.anger, 10)) : 'none! 😊'}`;
+  $('winWin').classList.remove('hidden'); $('againBtn').focus();
+}
+
+/* =========================================================
+   flow + input
+   ========================================================= */
+function lockPointer() { if (S.mobile) return; try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+function showBest() { try { const b = parseFloat(localStorage.getItem('cornelius-best')); $('best').textContent = b ? `Best graduation time: ${fmt(b)}` : ''; } catch (e) {} }
+async function startGame() {
+  initAudio();
+  for (const id of ['title', 'overWin', 'winWin', 'pauseWin', 'mapWin']) $(id).classList.add('hidden');
+  resetGame();
+  $('hud').classList.remove('hidden'); document.body.classList.add('ingame');
+  if (S.mobile) { try { const p = document.documentElement.requestFullscreen?.(); if (p) p.then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch (e) {} }
+  scene.fog.color.copy(SKY); scene.background = SKY; scene.fog.near = 40; scene.fog.far = 150; $('where').textContent = zones[0].name;
+  updatePlayer(0);
+  await introText();
+}
+function toTitle() {
+  S.mode = 'title'; if (document.pointerLockElement) document.exitPointerLock();
+  for (const id of ['hud', 'overWin', 'winWin', 'pauseWin', 'phone', 'mapWin']) $(id).classList.add('hidden');
+  $('title').classList.remove('hidden'); showBest(); document.body.classList.remove('ingame');
+}
+
+/* ---------- controls toggle + touch ---------- */
+const TOUCH = { joy: null, jx: 0, jy: 0, look: null, lx: 0, ly: 0, run: false };
+function setControls(mobile) {
+  S.mobile = mobile;
+  document.body.classList.toggle('mobile', mobile);
+  for (const b of document.querySelectorAll('.ctrlToggle')) b.textContent = mobile ? 'Controls: 📱 Mobile (tap to switch)' : 'Controls: 🖱️ Desktop (tap to switch)';
+  $('helpDesk').classList.toggle('hidden', mobile); $('helpMob').classList.toggle('hidden', !mobile);
+  for (const el of document.querySelectorAll('.desk-only')) el.classList.toggle('hidden', mobile);
+  try { localStorage.setItem('cornelius-controls', mobile ? 'mobile' : 'desktop'); } catch (e) {}
+  if (mobile && document.pointerLockElement) document.exitPointerLock();
+}
+for (const b of document.querySelectorAll('.ctrlToggle')) b.onclick = () => setControls(!S.mobile);
+const touchEl = $('touch'), joyEl = $('joy'), knob = $('knob');
+touchEl.addEventListener('touchstart', e => {
+  if (S.mode !== 'play') return;
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (t.target.closest('.tbtn')) continue;
+    if (t.clientX < innerWidth * .45 && !TOUCH.joy) {
+      TOUCH.joy = { id: t.identifier, x: t.clientX, y: t.clientY }; TOUCH.jx = TOUCH.jy = 0;
+      joyEl.style.left = t.clientX + 'px'; joyEl.style.top = t.clientY + 'px'; joyEl.style.display = 'block'; knob.style.transform = '';
+      $('joyHint').style.display = 'none';
+    } else if (!TOUCH.look) TOUCH.look = { id: t.identifier, x: t.clientX, y: t.clientY };
+  }
+}, { passive: false });
+touchEl.addEventListener('touchmove', e => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (TOUCH.joy && t.identifier === TOUCH.joy.id) {
+      let dx = t.clientX - TOUCH.joy.x, dy = t.clientY - TOUCH.joy.y; const d = Math.hypot(dx, dy), R = 50;
+      if (d > R) { dx *= R / d; dy *= R / d; }
+      TOUCH.jx = dx / R; TOUCH.jy = dy / R; knob.style.transform = `translate(${dx}px,${dy}px)`;
+    } else if (TOUCH.look && t.identifier === TOUCH.look.id && S.mode === 'play') {
+      S.yaw -= (t.clientX - TOUCH.look.x) * .006; S.pitch = clamp(S.pitch - (t.clientY - TOUCH.look.y) * .004, -.45, .45);
+      TOUCH.look.x = t.clientX; TOUCH.look.y = t.clientY;
+    }
+  }
+}, { passive: false });
+function touchEnd(e) {
+  for (const t of e.changedTouches) {
+    if (TOUCH.joy && t.identifier === TOUCH.joy.id) { TOUCH.joy = null; TOUCH.jx = TOUCH.jy = 0; joyEl.style.display = 'none'; }
+    if (TOUCH.look && t.identifier === TOUCH.look.id) TOUCH.look = null;
+  }
+}
+touchEl.addEventListener('touchend', touchEnd); touchEl.addEventListener('touchcancel', touchEnd);
+function tapBtn(id, fn) { const b = $(id); b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); if (S.mode === 'play') fn(); }, { passive: false }); b.addEventListener('click', () => { if (S.mode === 'play') fn(); }); }
+tapBtn('tUse', () => useItem());
+tapBtn('tAct', () => doInteract());
+tapBtn('tPause', () => pauseGame());
+tapBtn('tMap', () => { const m = $('mapWin'); m.classList.toggle('hidden'); if (!m.classList.contains('hidden')) drawMap(); });
+const runBtn = $('tRun');
+runBtn.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); TOUCH.run = true; runBtn.classList.add('on'); }, { passive: false });
+for (const ev of ['touchend', 'touchcancel']) runBtn.addEventListener(ev, e => { e.preventDefault(); TOUCH.run = false; runBtn.classList.remove('on'); });
+$('mapWin').addEventListener('click', () => { if (S.mobile) $('mapWin').classList.add('hidden'); });
+$('slots').addEventListener('click', e => { const s = e.target.closest('.slot'); if (!s || S.mode !== 'play') return; S.sel = [...$('slots').children].indexOf(s); updateHUD(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+function resetTouch() { TOUCH.joy = TOUCH.look = null; TOUCH.jx = TOUCH.jy = 0; TOUCH.run = false; joyEl.style.display = 'none'; runBtn.classList.remove('on'); }
+let saved = null; try { saved = localStorage.getItem('cornelius-controls'); } catch (e) {}
+const coarse = matchMedia('(pointer: coarse)').matches;
+setControls(saved ? saved === 'mobile' : coarse);
+if (coarse && !saved) $('touchNote').classList.remove('hidden');
+$('startBtn').onclick = startGame;
+$('retryBtn').onclick = startGame; $('againBtn').onclick = startGame;
+$('overTitleBtn').onclick = toTitle; $('winTitleBtn').onclick = toTitle; $('quitBtn').onclick = toTitle;
+$('resumeBtn').onclick = () => { $('pauseWin').classList.add('hidden'); S.mode = 'play'; lockPointer(); };
+$('restartBtn').onclick = startGame;
+function pauseGame() { if (S.mode !== 'play') return; S.mode = 'paused'; for (const k in keys) keys[k] = false; $('mapWin').classList.add('hidden'); $('pauseWin').classList.remove('hidden'); $('resumeBtn').focus(); if (document.pointerLockElement) document.exitPointerLock(); }
+canvas.addEventListener('click', () => { if (S.mode === 'play' && !document.pointerLockElement) lockPointer(); });
+document.addEventListener('pointerlockchange', () => {
+  if (!document.pointerLockElement && S.mode === 'play') pauseGame();
+});
+document.addEventListener('mousemove', e => {
+  if (S.mode !== 'play' || document.pointerLockElement !== canvas) return;
+  S.yaw -= e.movementX * .0022; S.pitch = clamp(S.pitch - e.movementY * .0018, -.45, .45);
+});
+document.addEventListener('mousedown', e => { if (S.mode === 'play' && document.pointerLockElement === canvas && e.button === 0) useItem(); });
+document.addEventListener('wheel', e => { if (S.mode !== 'play') return; S.sel = (S.sel + (e.deltaY > 0 ? 1 : 2)) % 3; updateHUD(); }, { passive: true });
+addEventListener('keydown', e => {
+  if (S.mode === 'phone') {
+    if (answerResolve && /^Digit[1-3]$/.test(e.code)) answer(+e.code.slice(5) - 1);
+    if (contResolve && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); doContinue(); }
+    return;
+  }
+  if (S.mode === 'title' && e.code === 'Enter') { startGame(); return; }
+  if (S.mode === 'paused' && (e.code === 'KeyP' || e.code === 'Escape')) { $('resumeBtn').click(); return; }
+  if (S.mode !== 'play') return;
+  if (e.code === 'KeyP' || e.code === 'Escape') { pauseGame(); return; }
+  keys[e.code] = true;
+  if (/^Digit[1-3]$/.test(e.code)) { S.sel = +e.code.slice(5) - 1; updateHUD(); }
+  if (e.code === 'KeyE') doInteract();
+  if (e.code === 'KeyF') useItem();
+  if (e.code === 'KeyM' || e.code === 'Tab') { e.preventDefault(); const m = $('mapWin'); m.classList.toggle('hidden'); if (!m.classList.contains('hidden')) drawMap(); }
+  if (e.code === 'Space') e.preventDefault();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+/* =========================================================
+   build + loop
+   ========================================================= */
+makeTextures();
+buildZones();
+buildGraph();
+buildOutdoor();
+for (const zn of zones) if (zn.b) buildInterior(zn);
+coffeeCanvasCache = coffeeCanvas();
+for (const t in ITEMS) itemIcons[t] = itemCanvas(t).toDataURL();
+for (const pose of ['wave1', 'wave2', 'reach1', 'reach2']) for (const m of [0, 1, 2]) cornTex[pose + m] = mkTex(cornCanvas(m, pose), false);
+cornSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: cornTex.wave10, transparent: true, alphaTest: .1 }));
+cornSprite.center.set(.5, 0); scene.add(cornSprite);
+drawCorn($('titleCorn').getContext('2d'), 0, 'wave1');
+let tw = 0; setInterval(() => { if (S.mode === 'title') drawCorn($('titleCorn').getContext('2d'), 0, (tw++ % 2) ? 'wave2' : 'wave1'); }, 450);
+showBest();
+// title backdrop camera
+S.px = wx(0, 22); S.pz = wz(0, 31); S.yaw = 0; S.pitch = 0; S.time = 0;
+window.__corn = { S, corn, zones, bfs, nodeOf, BUILDINGS, isWalk };
+
+const clock = new THREE.Clock();
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), .05);
+  const showTouch = S.mobile && S.mode === 'play';
+  if (showTouch === touchEl.classList.contains('hidden')) { touchEl.classList.toggle('hidden', !showTouch); if (!showTouch) resetTouch(); }
+  if (S.mode === 'play') {
+    S.time += dt;
+    updatePlayer(dt); pickups();
+    if (S.mode === 'play') { updateCorn(dt); updateProjectiles(dt); }
+    const it = nearestInteract(), pr = $('prompt');
+    if (it && S.mode === 'play') { const K = S.mobile ? '✋' : 'E'; pr.textContent = it.kind === 'vend' ? `${K} — Buy a snack (1 quarter, you have ${S.quarters})` : `${K} — Talk to the Registrar (${S.coffees}/7 coffees)`; pr.classList.remove('hidden'); } else pr.classList.add('hidden');
+    $('staminaFill').style.width = S.stamina + '%';
+    $('staminaFill').style.background = S.scooter > 0 ? '#9be22b' : S.stamina < 25 ? '#e6a222' : '#22e622';
+    if (!$('mapWin').classList.contains('hidden')) drawMap();
+  } else if (S.mode === 'title') {
+    S.yaw += dt * .08; camera.position.set(S.px, EYE, S.pz); camera.rotation.y = S.yaw; camera.rotation.x = 0;
+    cornSprite.position.set(corn.X || wx(0, CORN_START[0]), 0, corn.Z || wz(0, CORN_START[1])); cornSprite.scale.set(3.6, 5.4, 1);
+  }
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').classList.add('hidden'); }
+  if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').style.opacity = 0; }
+  renderer.render(scene, camera);
+}
+loop();
+</script>
+</body>
+</html>
