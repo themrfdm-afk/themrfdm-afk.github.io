@@ -1,0 +1,466 @@
+<!-- Nebraska Air Travel Explorer: self-contained embed (no external dependencies). -->
+<div id="nx-root" class="nx">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap');
+.nx{--bg:#fff;--ink:#333;--ink2:#595959;--muted:#6b6b6b;--grid:#e3e3e3;--axis:#bdbdbd;--chip:#ededed;--accent:#d00000;--seq0:#eef1e6;--seq1:#5f6f52;
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#7e57c2;--s8:#8c6d46;
+position:relative;box-sizing:border-box;background:var(--bg);color:var(--ink);font:15px/1.5 'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif;padding:4px 0 8px;max-width:1080px;margin:0 auto}
+.nx *{box-sizing:border-box}
+.nx h2{font:600 26px/1.15 'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif;margin:0 0 8px;color:#000}
+.nx h3{font:600 18px/1.2 'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:36px 0 6px;padding-top:10px;border-top:3px solid var(--accent);color:#000}
+.nx p{margin:0;color:var(--ink2);max-width:75ch}
+.nx .top{display:block}
+.nx button,.nx select{font:500 13px 'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.03em;color:#000;background:var(--chip);border:1px solid var(--chip);border-radius:3px;padding:6px 11px;cursor:pointer}
+.nx select{font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;letter-spacing:0;background:#fff;border-color:var(--axis)}
+.nx button:hover:not([aria-pressed="true"]){background:#e0e0e0}
+.nx button:focus-visible,.nx select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.nx .row{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-top:14px}
+.nx label.f{display:flex;gap:6px;align-items:center;color:var(--ink2);font-size:13px}
+.nx .chips{display:flex;flex-wrap:wrap;gap:6px}
+.nx .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;text-transform:uppercase}
+.nx .chip span{text-transform:none;font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:0;font-weight:400}
+.nx .chip i{width:10px;height:10px;border-radius:50%;background:var(--c);display:inline-block;border:2px solid var(--c)}
+.nx .chip[aria-pressed="false"]{opacity:.55;background:#fff;border-color:var(--axis)}.nx .chip[aria-pressed="false"] i{background:transparent}
+.nx .seg{display:inline-flex;border-radius:3px;overflow:hidden;gap:1px;background:var(--axis)}
+.nx .seg button{border-radius:0;border:0}
+.nx button[aria-pressed="true"].segb,.nx .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.nx .presets{display:flex;flex-wrap:wrap;gap:6px}
+.nx .presets button{font-size:12.5px;padding:4px 10px}
+.nx .glabel{font:500 11.5px 'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);align-self:center}
+.nx .glabel:not(:first-child){margin-left:12px}
+.nx .smgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 28px;margin-top:16px}
+@media(max-width:560px){.nx .smgrid{grid-template-columns:1fr}}
+.nx .panel{position:relative;min-width:0}
+.nx .ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.nx .ph b{font-weight:600;font-size:15px;color:#000}
+.nx .ph .v{font-variant-numeric:tabular-nums;color:var(--ink2);font-size:13px;white-space:nowrap}
+.nx .pm{color:var(--muted);font-size:12px;margin-bottom:2px;min-height:17px}
+.nx .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 0 2px;font-size:13px;color:var(--ink2)}
+.nx .legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.nx .tl{list-style:none;margin:12px 0 0;padding:0}
+.nx .tl li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--grid)}
+.nx .tl .n{flex:none;width:22px;height:22px;border-radius:50%;background:#000;color:#fff;font:600 12px/22px 'Work Sans',sans-serif;text-align:center}
+.nx .tl .d{font:500 13px 'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:#000}
+.nx .tl .tags{margin-left:8px}.nx .tl .tags span{display:inline-flex;align-items:center;gap:4px;margin-right:8px;font-size:12px;color:var(--ink2)}
+.nx .tl .tags i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.nx .tl p{margin:2px 0 0;color:var(--ink);max-width:80ch}
+.nx .tl .src{font-size:12px;color:var(--muted);margin-top:2px}.nx .tl .src a{color:#000;text-decoration:underline}
+.nx .pop{position:absolute;z-index:20;width:min(330px,92%);background:#fff;color:var(--ink);border:1px solid var(--axis);border-top:3px solid var(--accent);border-radius:2px;padding:12px 14px 12px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.22)}
+.nx .pop[hidden]{display:none}
+.nx .pop .ph2{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.nx .pop .n{flex:none;width:22px;height:22px;border-radius:50%;background:#000;color:#fff;font:600 12px/22px 'Work Sans',sans-serif;text-align:center}
+.nx .pop .d{font:500 13px 'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:#000;flex:1}
+.nx .pop .x{padding:0 7px;font-size:16px;line-height:22px;background:transparent;border:0;color:var(--ink2)}
+.nx .pop p{margin:4px 0;color:var(--ink);max-width:none}
+.nx .pop .src{font-size:12px;color:var(--muted)}.nx .pop .src a{color:#000;text-decoration:underline}
+.nx .pop .tags span{display:inline-flex;align-items:center;gap:4px;margin-right:8px;font-size:12px;color:var(--ink2)}
+.nx .pop .tags i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.nx .hint{font-size:12.5px;color:var(--muted);min-height:18px;margin-top:8px}
+.nx .wrap{position:relative;margin-top:8px}
+.nx svg{display:block;width:100%;overflow:visible;touch-action:pan-y}
+.nx svg text{fill:var(--muted);font-size:11px;font-family:'Work Sans','Helvetica Neue',Helvetica,Arial,sans-serif}
+.nx .tip{position:absolute;pointer-events:none;background:#fff;color:var(--ink);border:1px solid var(--axis);border-top:3px solid var(--accent);border-radius:2px;padding:7px 10px;font-size:12.5px;box-shadow:0 2px 10px rgba(0,0,0,.18);display:none;z-index:5;white-space:nowrap}
+.nx .tip b{display:block;margin-bottom:3px}.nx .tip div{display:flex;justify-content:space-between;gap:14px;font-variant-numeric:tabular-nums}
+.nx .tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.nx .range{color:var(--ink2);font-size:13px}
+.nx table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums;margin-top:8px}
+.nx .tw{overflow-x:auto}
+.nx th,.nx td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+.nx th:first-child,.nx td:first-child{text-align:left}
+.nx th{font:500 12.5px 'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:#000;border-bottom:2px solid #000}
+.nx td i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}
+.nx .note{font-size:12.5px;color:#000;margin-top:30px;max-width:none;background:#ededed;border-top:3px solid var(--accent);padding:12px 14px}
+.nx .note b{font-weight:600}
+.nx .keyn{font-size:12.5px;color:var(--ink2);margin:8px 0 0}
+.nx .mapbox{max-width:640px;margin:6px 0 14px}
+.nx .mapl{font:500 12.5px 'Work Sans',sans-serif;fill:var(--ink)}
+.nx .mapl .mc{font:600 12px 'Oswald',sans-serif;letter-spacing:.04em}
+</style>
+
+<div class="top">
+  <div>
+    <h2>Nebraska air travel explorer</h2>
+    <p>Monthly passengers, seats and flights at eight Nebraska airports, Jan 2014 – Jul 2026, in plain numbers. First the six regional airports on their own, then side by side, then how far above them Lincoln and Omaha sit.</p>
+  </div>
+</div>
+
+<div class="mapbox"><svg viewBox="0 0 608 301" role="img" aria-label="Map of Nebraska showing Chadron, Alliance, Scottsbluff, North Platte, Kearney, Grand Island, Lincoln and Omaha airports. Chadron and Alliance are not tied to a major airline."><path d="M17.2 18.3L86.5 18.4L120.3 18.5L162.4 18.5L177.1 18.8L225.8 18.6L276.4 18.5L312.6 18.6L356.6 18.5L383.1 18.5L385.2 23.0L399.0 29.4L407.5 34.1L414.8 39.3L419.3 38.6L422.2 36.5L424.3 30.9L426.2 30.0L430.9 31.6L436.8 32.3L441.1 31.0L444.9 31.8L448.6 30.9L452.9 31.9L454.6 30.2L458.1 31.2L461.7 30.1L467.6 32.0L467.8 34.9L472.1 36.4L473.2 38.5L483.4 39.5L485.3 43.1L488.2 41.8L494.8 44.5L495.0 47.5L500.0 47.7L502.6 48.9L500.9 52.9L505.9 57.8L507.6 61.9L513.2 61.5L514.4 63.7L518.4 63.2L518.4 63.2L521.7 63.8L522.7 67.1L520.6 70.5L520.6 76.2L523.2 78.4L526.5 86.2L524.1 88.1L524.8 91.7L530.0 95.9L529.8 102.2L533.3 104.1L532.2 105.3L535.7 106.2L535.5 108.4L539.3 108.9L538.5 113.9L537.1 114.7L540.4 119.3L540.7 122.2L543.5 123.9L542.8 127.4L540.9 128.9L542.3 133.0L539.7 134.4L541.6 137.5L540.0 140.4L542.6 143.3L541.9 147.6L545.4 149.7L545.9 146.9L548.0 147.0L547.5 152.8L552.3 153.6L552.5 162.3L550.8 164.5L555.6 166.6L552.5 169.7L553.7 174.4L552.7 177.2L558.4 179.0L555.6 180.3L556.8 187.3L555.6 189.4L557.2 191.7L557.0 194.8L559.1 196.3L558.6 201.3L560.3 203.4L557.9 207.2L558.9 213.5L555.8 216.1L555.3 218.9L558.9 223.3L562.0 224.5L564.3 228.8L563.4 230.9L563.4 230.9L563.1 235.7L567.9 235.9L568.1 233.4L570.7 234.7L567.6 237.9L567.9 240.9L570.5 243.5L570.2 246.5L573.1 254.8L577.3 256.7L577.1 259.2L581.8 260.6L582.3 266.4L588.0 272.2L586.1 278.1L593.4 282.4L593.4 282.4L562.0 282.4L527.9 282.4L465.7 282.3L399.7 282.2L361.1 282.2L296.5 282.3L234.3 282.2L209.7 282.2L148.9 282.1L148.9 282.1L148.9 194.2L115.8 194.2L83.9 194.2L17.2 194.3L17.2 194.3L17.2 18.3Z" fill="#f4f4f0" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="47.2" cy="117.5" r="6" fill="var(--s1)" stroke="#fff" stroke-width="2"/><text class="mapl" x="39.2" y="140.5" text-anchor="start"><tspan class="mc">BFF</tspan> Scottsbluff</text><circle cx="239.2" cy="183.3" r="6" fill="var(--s5)" stroke="#fff" stroke-width="2"/><text class="mapl" x="239.2" y="206.3" text-anchor="middle"><tspan class="mc">LBF</tspan> North Platte</text><circle cx="395.6" cy="197.3" r="6" fill="var(--s2)" stroke="#fff" stroke-width="2"/><text class="mapl" x="395.6" y="184.3" text-anchor="middle"><tspan class="mc">GRI</tspan> Grand Island</text><circle cx="349.7" cy="218.4" r="6" fill="var(--s3)" stroke="#fff" stroke-width="2"/><text class="mapl" x="339.7" y="240.4" text-anchor="end"><tspan class="mc">EAR</tspan> Kearney</text><circle cx="497.8" cy="207.5" r="6" fill="var(--s4)" stroke="#fff" stroke-width="2"/><text class="mapl" x="497.8" y="230.5" text-anchor="middle"><tspan class="mc">LNK</tspan> Lincoln</text><circle cx="554.8" cy="167.7" r="6" fill="var(--s6)" stroke="#fff" stroke-width="2"/><text class="mapl" x="542.8" y="171.7" text-anchor="end"><tspan class="mc">OMA</tspan> Omaha</text><circle cx="99.4" cy="101.7" r="5.5" fill="#fff" stroke="var(--s7)" stroke-width="3"/><text class="mapl" x="111.4" y="105.7" text-anchor="start"><tspan class="mc">AIA</tspan> Alliance†</text><circle cx="80.2" cy="33.5" r="5.5" fill="#fff" stroke="var(--s8)" stroke-width="3"/><text class="mapl" x="92.2" y="37.5" text-anchor="start"><tspan class="mc">CDR</tspan> Chadron†</text></svg><p class="keyn"><svg width="14" height="14" viewBox="0 0 14 14" style="display:inline-block;vertical-align:-2px;width:14px;margin-right:5px"><circle cx="7" cy="7" r="4.5" fill="#fff" stroke="#555" stroke-width="2.5"/></svg>† Hollow dots: not tied to a major airline. Alliance and Chadron are served by small independent carriers under Essential Air Service.</p>
+</div>
+<div class="row">
+  <label class="f">Metric
+    <select id="nx-metric"></select>
+  </label>
+  <span class="glabel">Show on charts</span>
+  <label class="f"><input type="checkbox" data-an="svc" checked> Airline service changes</label>
+  <label class="f"><input type="checkbox" data-an="gaps" checked> No-service gaps</label>
+  <label class="f"><input type="checkbox" data-an="covid" checked> COVID-19</label>
+  <button id="nx-csv" title="Download all eight airports for the selected period as CSV">Download CSV</button>
+</div>
+<div class="wrap" id="nx-ovw"><svg id="nx-osvg" aria-label="Time range selector. Drag to choose a period."></svg></div>
+<div class="row" style="margin-top:6px">
+  <div class="presets" id="nx-presets"></div>
+  <span class="range" id="nx-range"></span>
+</div>
+<div class="hint" id="nx-hint"></div>
+
+<h3>Each regional airport, by its own numbers</h3>
+<p>One panel per airport, each with its own vertical scale so you can see its real ups and downs. The dashed line is the airport’s average month in 2019, before COVID. Hover any panel to read that month across all of them.</p>
+<div class="row"><div class="chips" id="nx-chips" role="group" aria-label="Regional airports"></div></div>
+<p class="keyn">† Alliance and Chadron are not tied to a major airline. Their Essential Air Service flights are run by small independent carriers, not a major airline’s regional brand such as United Express.</p>
+<div class="smgrid" id="nx-sm"></div>
+
+<h3>The regional airports together</h3>
+<p id="nx-cmpsub"></p>
+<div class="legend" id="nx-clegend"></div>
+<div class="wrap" id="nx-cmp"><svg id="nx-csvg" role="img"></svg><div class="tip" id="nx-ctip"></div></div>
+
+<h3>The gap: how far above are Lincoln and Omaha?</h3>
+<p id="nx-gapsub"></p>
+<div class="wrap" id="nx-gap"><svg id="nx-gsvg" role="img"></svg></div>
+
+<h3>All eight on one scale</h3>
+<p id="nx-allsub"></p>
+<div class="legend" id="nx-alegend"></div>
+<div class="wrap" id="nx-all"><svg id="nx-asvg" role="img"></svg><div class="tip" id="nx-atip"></div></div>
+
+<h3>What changed: airline service timeline</h3>
+<p>The numbered markers on the charts match this list, and you can click a number on any chart for details. The gray “no service” bands are computed from the data (three or more months with zero departing passengers); the list explains what was happening. Lincoln and Omaha have no changes marked because I found no clear, dated route changes for them, and events with vague or conflicting dates were left out. Allegiant has also flown Las Vegas–Grand Island since 2008, before this data begins, so it has no marker.</p>
+<ol class="tl" id="nx-tl"></ol>
+
+<h3>Seasonality</h3>
+<p id="nx-heatsub"></p>
+<div class="row">
+  <div class="chips" id="nx-hchips" role="group" aria-label="Heatmap airport"></div>
+  <div class="seg" role="group" aria-label="Heatmap color mode">
+    <button id="nx-hvol" aria-pressed="true">Volume</button>
+    <button id="nx-hshare" aria-pressed="false" title="Each month divided by that year's average month">Season shape</button>
+  </div>
+</div>
+<div class="wrap" id="nx-heat"><svg id="nx-hsvg" role="img"></svg><div class="tip" id="nx-htip"></div></div>
+
+<h3>Summary for the selected period</h3>
+<div class="tw" id="nx-table"></div>
+
+<div class="pop" id="nx-pop" role="dialog" aria-live="polite" hidden></div>
+<p class="note" id="nx-note"></p>
+
+<script>
+(function(){
+const DATA=__DATA__;
+const root=document.getElementById("nx-root");
+const $=id=>document.getElementById(id);
+const AIR=[["BFF","Scottsbluff","--s1"],["GRI","Grand Island","--s2"],["EAR","Kearney","--s3"],["LNK","Lincoln","--s4"],["LBF","North Platte","--s5"],["OMA","Omaha","--s6"],["AIA","Alliance\u2020","--s7"],["CDR","Chadron\u2020","--s8"]];
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* Annotations. m = "YYYY-MM"; a = airports it applies to (null = all); kind = covid | svc. Numbers on the charts follow this order. */
+const EVENTS=[
+ {m:"2015-11",a:["GRI"],kind:"svc",d:"Nov 7, 2015",t:"Allegiant launches twice-weekly nonstop flights from Grand Island to Orlando Sanford, one of six new Orlando routes it announced that month.",src:[["Allegiant press release (Nov 5, 2015)","https://ir.allegiantair.com/news/news-details/2015/Allegiant-Launches-Six-New-Nonstop-Flights-to-Orlando-with-Fares-as-Low-as-49-11-05-2015/default.aspx"]]},
+ {m:"2017-09",a:["BFF","EAR","LBF"],kind:"svc",d:"Sept 10, 2017",t:"PenAir ends its subsidized Denver flights from Scottsbluff, Kearney and North Platte. The airline cited 17 pilot resignations and had filed for Chapter 11 bankruptcy.",src:[["Patch","https://patch.com/nebraska/across-ne/penair-ending-flights-5-cities-nebraska-kansas"],["Rep. Adrian Smith","https://adriansmith.house.gov/media/press-releases/smith-statement-penair-discontinuing-service-kearney-north-platte-and"],["ch-aviation","https://www.ch-aviation.com/news/59142-penair-hit-by-pilot-exodus-operations-in-jeopardy"]]},
+ {m:"2018-02",a:["BFF","LBF"],kind:"svc",d:"Feb 1, 2018",t:"SkyWest (United Express) takes over Denver service. North Platte\u2019s first SkyWest flight left Feb 1; Scottsbluff\u2019s contract was set to begin the same day.",src:[["Fox Business (Oct 2017)","https://www.foxbusiness.com/markets/skywest-likely-to-provide-denver-flights-for-nebraska-cities"],["AP via Washington Times (Nov 2017)","https://m.washingtontimes.com/news/2017/nov/7/new-flight-from-north-platte-to-denver-starts-on-f/"],["DOT EAS report (Jan 2018)","https://www.transportation.gov/sites/dot.gov/files/docs/mission/office-policy/aviation-policy/302296/subsidized-eas-report-non-alaska-communities-january-2018.pdf"]]},
+ {m:"2018-09",a:["EAR"],kind:"svc",d:"Sept 2018",t:"Kearney flights to Denver resume (SkyWest / United Express) once a runway replacement is finished, ending about a year without service.",src:[["AP via Washington Times (Sept 7, 2018)","https://m.washingtontimes.com/news/2018/sep/7/work-done-kearney-airport-resumes-flights-to-denve/"],["KRVN","https://ruralradio.com/krvn/news/skywest-selected-to-provide-united-express-service-at-kearney-nebraska"]]},
+ {m:"2020-03",a:null,kind:"covid",d:"Mar 2020",t:"U.S. national emergency declared for COVID-19; air travel collapses nationwide.",src:[]},
+ {m:"2022-11",a:["EAR"],kind:"svc",d:"Nov 1, 2022",t:"Denver Air Connection begins Essential Air Service at Kearney: 50-seat regional jets, 12 nonstop round trips a week to Denver, under a two-year contract.",src:[["Kearney Regional Airport (Aug 12, 2022)","https://flykearney.com/2022/08/12/denver-air-connection-selected-to-provide-air-service-at-kearney-regional-airport/"],["NewsChannel Nebraska","https://central.newschannelnebraska.com/story/47085286/feds-select-denver-air-connection-to-provide-air-service-at-kearney-regional-airport"]]},
+ {m:"2024-11",a:["EAR"],kind:"svc",d:"Nov 1, 2024",t:"SkyWest returns to Kearney with a three-year contract: 50-seat regional jets, 12 nonstop round trips a week to Denver.",src:[["City of Kearney press release (Aug 13, 2024)","https://www.cityofkearney.org/Archive.aspx?ADID=11683"],["NewsChannel Nebraska (Jul 10, 2024)","https://central.newschannelnebraska.com/story/51019310/skywest-poised-to-return-as-air-service-provider-in-kearney"]]},
+ {m:"2024-12",a:["GRI"],kind:"svc",d:"Dec 2024",t:"Allegiant adds Grand Island\u2013Phoenix/Mesa flights: five a week over the holidays, three a week from Jan 12, 2025, and four a week from late February through April.",src:[["Central Nebraska Today (Dec 19, 2024)","https://www.centralnebraskatoday.com/2024/12/19/grand-islands-central-nebraska-regional-airport-adding-flights/"],["KSN","https://www.ksnblocal4.com/2024/12/19/new-flights-coming-central-nebraska-regional-airport/"]]}
+];
+const METRICS={
+ pax_dep:{label:"Departing passengers",kind:"sum",fmt:"int"},
+ pax_arr:{label:"Arriving passengers (market basis)",kind:"sum",fmt:"int"},
+ seats:{label:"Seats offered",kind:"sum",fmt:"int"},
+ flights:{label:"Departures (flights)",kind:"sum",fmt:"int"},
+ load:{label:"Load factor (% of seats filled)",kind:"ratio",fmt:"pct"},
+ freight:{label:"Freight departing (lbs)",kind:"sum",fmt:"int"}
+};
+const M=DATA.months,N=M.length;
+const yr=i=>+M[i].slice(0,4),mo=i=>+M[i].slice(5)-1;
+const lab=i=>MON[mo(i)]+" "+yr(i);
+const fmtInt=n=>Math.round(n).toLocaleString("en-US");
+function series(a,k){
+  if(k==="load"){const p=DATA.s[a].pax_dep,s=DATA.s[a].seats;return p.map((v,i)=>s[i]>0?100*v/s[i]:null)}
+  return DATA.s[a][k];
+}
+const SER={};AIR.forEach(([a])=>{SER[a]={};Object.keys(METRICS).forEach(k=>SER[a][k]=series(a,k))});
+const idxOf=m=>M.indexOf(m);
+const base2019=(a,k)=>{const v=SER[a][k].filter((_,i)=>yr(i)===2019&&_!=null);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
+
+const st={metric:"pax_dep",idx:false,active:new Set(["BFF","GRI","EAR","LBF","AIA","CDR"]),range:[0,N-1],an:{covid:true,svc:true,gaps:true},heat:"BFF",share:false,hover:null,same:false};
+const css=v=>getComputedStyle(root).getPropertyValue(v).trim();
+const NS="http://www.w3.org/2000/svg";
+function mk(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function step(raw){const p=Math.pow(10,Math.floor(Math.log10(raw)));for(const f of [1,2,2.5,5,10])if(f*p>=raw)return f*p;return 10*p}
+function compact(v){const a=Math.abs(v);if(a>=1e6)return +(v/1e6).toFixed(2)+"M";if(a>=1e3)return +(v/1e3).toFixed(1)+"k";return ""+Math.round(v*10)/10}
+function fv(v,k,isIdx){if(v==null)return "–";if(isIdx)return Math.round(v)+"";return METRICS[k].fmt==="pct"?v.toFixed(1)+"%":fmtInt(v)}
+function val(a,i){
+  const k=st.metric,v=SER[a][k][i];if(v==null)return null;
+  if(st.idx&&k!=="load"){const b=base2019(a,k);return b?100*v/b:null}
+  return v;
+}
+const isIdx=()=>st.idx&&st.metric!=="load";
+const rgb=h=>{h=h.replace("#","");return[0,2,4].map(i=>parseInt(h.substr(i,2),16))};
+const mix=(a,b,t)=>{const x=rgb(a),y=rgb(b);return "rgb("+x.map((v,i)=>Math.round(v+(y[i]-v)*t)).join(",")+")"};
+
+/* ---------- controls ---------- */
+const sel=$("nx-metric");
+Object.keys(METRICS).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=METRICS[k].label;sel.appendChild(o)});
+sel.onchange=()=>{st.metric=sel.value;drawAll()};
+document.querySelectorAll("[data-an]").forEach(cb=>{cb.onchange=()=>{st.an[cb.dataset.an]=cb.checked;drawSM();drawCmp();drawAllSix()}});
+const BIG=["LNK","OMA"];
+const chips=$("nx-chips");
+AIR.filter(x=>!BIG.includes(x[0])).forEach(([a,n,c])=>{const b=document.createElement("button");b.className="chip";b.style.setProperty("--c","var("+c+")");b.innerHTML="<i></i>"+a+" <span style='color:var(--ink2)'>"+n+"</span>";
+  b.setAttribute("aria-pressed","true");b.onclick=()=>{if(st.active.has(a)){if(st.active.size>1)st.active.delete(a)}else st.active.add(a);drawAll()};b.dataset.a=a;chips.appendChild(b)});
+const hch=$("nx-hchips");
+AIR.forEach(([a,n,c])=>{const b=document.createElement("button");b.className="chip";b.style.setProperty("--c","var("+c+")");b.innerHTML="<i></i>"+a+(n.endsWith("\u2020")?"\u2020":"");b.onclick=()=>{st.heat=a;drawHeat();syncChips()};b.dataset.a=a;hch.appendChild(b)});
+$("nx-hvol").onclick=()=>{st.share=false;drawHeat();syncChips()};
+$("nx-hshare").onclick=()=>{st.share=true;drawHeat();syncChips()};
+function syncChips(){
+  chips.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",st.active.has(b.dataset.a)));
+  hch.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.a===st.heat));
+  $("nx-hvol").setAttribute("aria-pressed",!st.share);$("nx-hshare").setAttribute("aria-pressed",st.share);
+}
+const PRESETS=[["All",0,N-1],["Pre-COVID",0,idxOf("2020-02")],["COVID years",idxOf("2020-03"),idxOf("2021-12")],["Since 2022",idxOf("2022-01"),N-1],["Last 3 years",N-36,N-1]];
+PRESETS.forEach(([t,a,b])=>{const e=document.createElement("button");e.textContent=t;e.onclick=()=>{st.range=[a,b];drawAll()};$("nx-presets").appendChild(e)});
+
+/* ---------- service gaps (3+ months of zero departing passengers) ---------- */
+const GAPS=[];
+AIR.forEach(([a])=>{const v=DATA.s[a].pax_dep;let s=null;for(let i=0;i<=N;i++){const z=i<N&&v[i]===0;if(z&&s==null)s=i;if(!z&&s!=null){if(i-s>=3)GAPS.push({a,s,e:i-1});s=null}}});
+
+/* ---------- annotations ---------- */
+const SVC=EVENTS.filter(e=>e.kind!=="covid");
+function openNote(n,ev){
+  const e=SVC[n],pop=$("nx-pop"),r=root.getBoundingClientRect();
+  const tags=e.a?e.a.map(a=>"<span><i style=\"background:var("+AIR.find(q=>q[0]===a)[2]+")\"></i>"+a+"</span>").join(""):"<span>All airports</span>";
+  pop.innerHTML="<div class=\"ph2\"><span class=\"n\">"+(n+1)+"</span><span class=\"d\">"+(e.approx?"~":"")+e.d+"</span><button class=\"x\" aria-label=\"Close\">\u00D7</button></div><div class=\"tags\">"+tags+"</div><p>"+e.t+"</p>"+(e.src.length?"<div class=\"src\">Sources: "+e.src.map(s=>"<a href=\""+s[1]+"\" target=\"_blank\" rel=\"noopener\">"+s[0]+"</a>").join(", ")+"</div>":"");
+  pop.hidden=false;pop.querySelector(".x").onclick=closeNote;
+  const w=pop.offsetWidth;let left=ev.clientX-r.left+12;if(left+w>r.width)left=Math.max(0,ev.clientX-r.left-w-12);
+  pop.style.left=Math.max(0,left)+"px";pop.style.top=Math.max(0,ev.clientY-r.top+12)+"px";
+}
+function closeNote(){const p=$("nx-pop");if(p)p.hidden=true}
+document.addEventListener("click",e=>{if(!$("nx-pop").contains(e.target))closeNote()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeNote()});
+function drawNotes(svg,x,y0,y1,T,codes,a0,a1,W){
+  if(st.an.gaps){let lvl=0;
+    GAPS.filter(g=>codes.includes(g.a)&&g.e>=a0&&g.s<=a1).forEach(g=>{const s=Math.max(g.s,a0),e=Math.min(g.e,a1),c=AIR.find(q=>q[0]===g.a)[2];
+      mk("rect",{x:x(s)-1,y:T,width:Math.max(3,x(e)-x(s)+2),height:y1-T,fill:css(c),opacity:.16,"pointer-events":"none"},svg);
+      const t1=mk("text",{x:x(s)+2,y:T+40+(lvl++%3)*12,"pointer-events":"none"},svg);t1.textContent=(codes.length>1?g.a+" ":"")+"no service";t1.style.fill=css(c)})}
+  let k=0;
+  EVENTS.forEach(e=>{const i=idxOf(e.m);if(i<a0||i>a1||!st.an[e.kind]||(e.a&&!e.a.some(c=>codes.includes(c))))return;
+    if(e.kind==="covid"){const cx=x(i),left=cx>W*0.7;mk("line",{x1:cx,x2:cx,y1:y0,y2:y1,stroke:css("--ink2"),"stroke-dasharray":"3 3",opacity:.8,"pointer-events":"none"},svg);const ct=mk("text",{x:cx+(left?-4:4),y:T+10,"text-anchor":left?"end":"start","pointer-events":"none"},svg);ct.textContent="COVID-19";return}
+    const n=SVC.indexOf(e);
+    const xx=x(i),by=T+10+(k++%2)*17;
+    mk("line",{x1:xx,x2:xx,y1:y0,y2:y1,stroke:css("--ink2"),"stroke-dasharray":"3 3",opacity:.8,"pointer-events":"none"},svg);
+    const g=mk("g",{style:"cursor:pointer",role:"button",tabindex:"0","aria-label":"Annotation "+(n+1)+": "+e.d},svg);g.addEventListener("click",ev=>{ev.stopPropagation();openNote(n,ev)});g.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();ev.stopPropagation();openNote(n,{clientX:g.getBoundingClientRect().left,clientY:g.getBoundingClientRect().bottom})}});mk("circle",{cx:xx,cy:by,r:8,fill:css("--ink")},g);
+    const tx=mk("text",{x:xx,y:by+3.5,"text-anchor":"middle"},g);tx.textContent=n+1;tx.style.fill="#fff";tx.style.fontSize="10px";tx.style.fontWeight="600";
+    mk("title",{},g).textContent=e.d+(e.approx?" (approx.)":"")+" \u2013 click for details"});
+}
+$("nx-tl").innerHTML=SVC.map((e,n)=>"<li><span class=\"n\">"+(n+1)+"</span><div><span class=\"d\">"+(e.approx?"~":"")+e.d+"</span><span class=\"tags\">"+(e.a?e.a.map(a=>"<span><i style=\"background:var("+AIR.find(q=>q[0]===a)[2]+")\"></i>"+a+"</span>").join(""):"<span>All airports</span>")+"</span><p>"+e.t+"</p>"+(e.src.length?"<div class=\"src\">Sources: "+e.src.map(s=>"<a href=\""+s[1]+"\" target=\"_blank\" rel=\"noopener\">"+s[0]+"</a>").join(", ")+"</div>":"")+"</div></li>").join("");
+
+/* ---------- small multiples ---------- */
+const smEl=$("nx-sm");let SM=[];
+function drawSM(){
+  const act=AIR.filter(x=>st.active.has(x[0])&&!BIG.includes(x[0])),[a0,a1]=st.range,span=Math.max(1,a1-a0),k=st.metric,m=METRICS[k];
+  const regs=act.filter(x=>!BIG.includes(x[0])),pool=isIdx()?act:(regs.length?regs:act);
+  const maxOf=a=>{let mx=0;for(let i=a0;i<=a1;i++){const v=val(a,i);if(v!=null&&v>mx)mx=v}return mx};
+  const avgOf=a=>{let s=0,c=0;for(let i=a0;i<=a1;i++){const v=SER[a][k][i];if(v!=null){s+=v;c++}}return c?s/c:0};
+  const mk0=Math.max(1,...pool.map(([a])=>maxOf(a))),sp0=step(mk0/3),sharedTop=sp0*Math.ceil(mk0/sp0*0.999);
+  const ref=regs.find(q=>q[0]==="BFF")||regs[0],lnkAvg=avgOf("LNK");
+  smEl.innerHTML="";SM=[];
+  act.forEach(([a,n,c])=>{
+    const own=maxOf(a)||1,spo=step(own/3),ownTop=spo*Math.ceil(own/spo*0.999),top=st.same?sharedTop:ownTop,sp=st.same?sp0:spo;
+    const off=st.same&&maxOf(a)>top*1.0001,av=avgOf(a),sum=m.kind==="sum"&&!isIdx();
+    let sub="";
+    if(sum){const b9=base2019(a,k);sub="avg "+fmtInt(av)+"/mo"+(b9!=null?" · 2019 avg "+fmtInt(b9):"");
+      if(off&&ref&&avgOf(ref[0]))sub="▲ off the scale: avg "+fmtInt(av)+"/mo ("+Math.round(av/avgOf(ref[0]))+"× "+ref[0]+")";
+    }
+    const d=document.createElement("div");d.className="panel";
+    d.innerHTML="<div class=\"ph\"><b>"+a+" · "+n+"</b><span class=\"v\"></span></div><div class=\"pm\">"+sub+"</div><svg></svg>";
+    smEl.appendChild(d);
+    const svg=d.querySelector("svg"),W=d.clientWidth||300,H=W<340?130:150,L=40,R=6,T=8,B=20;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.setAttribute("height",H);
+    const x=i=>L+(W-L-R)*(i-a0)/span,y=v=>T+(H-T-B)*(1-v/top);
+    svg.setAttribute("aria-label",n+": "+m.label+", "+lab(a0)+" to "+lab(a1));
+    const cp=mk("clipPath",{id:"nx-c-"+a},mk("defs",{},svg));mk("rect",{x:L,y:T,width:W-L-R,height:H-T-B+2},cp);
+    for(let g=0;g<=top*1.0001;g+=sp){mk("line",{x1:L,x2:W-R,y1:y(g),y2:y(g),stroke:g?css("--grid"):css("--axis")},svg);
+      const t1=mk("text",{x:L-6,y:y(g)+4,"text-anchor":"end"},svg);t1.textContent=m.fmt==="pct"&&!isIdx()?Math.round(g)+"%":compact(g)}
+    const yrs=[];for(let i=a0;i<=a1;i++)if(mo(i)===0)yrs.push(i);
+    const every=Math.max(1,Math.ceil(yrs.length/Math.max(1,Math.floor((W-L-R)/46))));
+    if(yrs.length<2){for(let i=a0;i<=a1;i+=Math.max(1,Math.round(span/4))){const t1=mk("text",{x:x(i),y:H-5,"text-anchor":"middle"},svg);t1.textContent=lab(i)}}
+    else yrs.forEach((i,j)=>{if(j%every)return;const t1=mk("text",{x:x(i),y:H-5,"text-anchor":"middle"},svg);t1.textContent=yr(i)});
+    const base=isIdx()?100:(m.kind==="sum"?base2019(a,k):null);
+    if(base!=null&&base<=top*1.0001){mk("line",{x1:L,x2:W-R,y1:y(base),y2:y(base),stroke:css("--ink"),"stroke-width":1,"stroke-dasharray":"5 4",opacity:.55},svg);
+}
+    let dd="",pen=false;for(let i=a0;i<=a1;i++){const v=val(a,i);if(v==null){pen=false;continue}dd+=(pen?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);pen=true}
+    mk("path",{d:dd,"clip-path":"url(#nx-c-"+a+")",fill:"none",stroke:css(c),"stroke-width":a==="BFF"?2.5:2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+    const cross=mk("line",{y1:T,y2:H-B,stroke:css("--ink2"),"stroke-dasharray":"3 3",visibility:"hidden"},svg);
+    const dot=mk("circle",{r:4.5,fill:css(c),stroke:css("--bg"),"stroke-width":2,visibility:"hidden"},svg);
+    const hit=mk("rect",{x:L,y:0,width:W-L-R,height:H,fill:"transparent"},svg);
+    const mv=e=>{const r=svg.getBoundingClientRect();setHoverSM(Math.max(a0,Math.min(a1,Math.round(a0+(e.clientX-r.left-L)/(W-L-R)*span))))};
+    hit.addEventListener("pointermove",mv);hit.addEventListener("pointerdown",mv);hit.addEventListener("pointerleave",()=>setHoverSM(null));
+    drawNotes(svg,x,T,H-B,T,[a],a0,a1,W);
+    SM.push({a,x,y,top,T,cross,dot,v:d.querySelector(".v")});
+  });
+  setHoverSM(hoverI);
+}
+let hoverI=null;
+function setHoverSM(i){
+  hoverI=i;
+  SM.forEach(p=>{
+    if(i==null){p.cross.setAttribute("visibility","hidden");p.dot.setAttribute("visibility","hidden");p.v.textContent="";return}
+    const v=val(p.a,i),xx=p.x(i);p.cross.setAttribute("x1",xx);p.cross.setAttribute("x2",xx);p.cross.setAttribute("visibility","visible");
+    if(v==null)p.dot.setAttribute("visibility","hidden");else{p.dot.setAttribute("cx",xx);p.dot.setAttribute("cy",Math.max(p.y(v),p.T));p.dot.setAttribute("visibility","visible")}
+    p.v.textContent=lab(i)+" · "+fv(v,st.metric,isIdx());
+  });
+}
+
+/* ---------- plain-number line charts (regionals together, and all six) ---------- */
+function drawLines(svg,tip,wrap,list){
+  const W=wrap.clientWidth||600,H=W<520?300:360,L=50,R=W<520?40:52,T=10,B=26,[a0,a1]=st.range,span=Math.max(1,a1-a0),k=st.metric,m=METRICS[k];
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.setAttribute("height",H);svg.innerHTML="";
+  let mx=0;list.forEach(([a])=>{for(let i=a0;i<=a1;i++){const v=val(a,i);if(v!=null&&v>mx)mx=v}});if(mx<=0)mx=1;
+  const sp=step(mx/4),top=sp*Math.ceil(mx/sp*0.999),x=i=>L+(W-L-R)*(i-a0)/span,y=v=>T+(H-T-B)*(1-v/top);
+  svg.setAttribute("aria-label",m.label+" for "+list.map(q=>q[0]).join(", ")+", "+lab(a0)+" to "+lab(a1));
+  for(let g=0;g<=top*1.0001;g+=sp){mk("line",{x1:L,x2:W-R,y1:y(g),y2:y(g),stroke:g?css("--grid"):css("--axis")},svg);
+    const t1=mk("text",{x:L-6,y:y(g)+4,"text-anchor":"end"},svg);t1.textContent=m.fmt==="pct"?Math.round(g)+"%":compact(g)}
+  const yrs=[];for(let i=a0;i<=a1;i++)if(mo(i)===0)yrs.push(i);
+  const every=Math.max(1,Math.ceil(yrs.length/Math.max(1,Math.floor((W-L-R)/54))));
+  if(yrs.length<2){for(let i=a0;i<=a1;i+=Math.max(1,Math.round(span/5))){const t1=mk("text",{x:x(i),y:H-6,"text-anchor":"middle"},svg);t1.textContent=lab(i)}}
+  else yrs.forEach((i,j)=>{if(j%every)return;mk("line",{x1:x(i),x2:x(i),y1:H-B,y2:H-B+4,stroke:css("--axis")},svg);const t1=mk("text",{x:x(i),y:H-6,"text-anchor":"middle"},svg);t1.textContent=yr(i)});
+  const ends=[];
+  list.forEach(([a,n,c])=>{let d="",pen=false,last=null;for(let i=a0;i<=a1;i++){const v=val(a,i);if(v==null){pen=false;continue}d+=(pen?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);pen=true;last=v}
+    mk("path",{d,fill:"none",stroke:css(c),"stroke-width":a==="BFF"?2.75:2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);if(last!=null)ends.push({a,y:y(last)})});
+  ends.sort((p,q)=>p.y-q.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<13)ends[i].y=ends[i-1].y+13;
+  ends.forEach(e=>{const t1=mk("text",{x:W-R+6,y:e.y+4},svg);t1.textContent=e.a;t1.style.fill=css("--ink2")});
+  const cross=mk("line",{y1:T,y2:H-B,stroke:css("--ink2"),"stroke-dasharray":"3 3",visibility:"hidden"},svg);
+  const dots=list.map(([a,n,c])=>mk("circle",{r:4.5,fill:css(c),stroke:css("--bg"),"stroke-width":2,visibility:"hidden"},svg));
+  const hit=mk("rect",{x:L,y:0,width:W-L-R,height:H,fill:"transparent"},svg);
+  const mv=e=>{const r=svg.getBoundingClientRect(),i=Math.max(a0,Math.min(a1,Math.round(a0+(e.clientX-r.left-L)/(W-L-R)*span)));
+    cross.setAttribute("x1",x(i));cross.setAttribute("x2",x(i));cross.setAttribute("visibility","visible");
+    list.forEach(([a],j)=>{const v=val(a,i);if(v==null)dots[j].setAttribute("visibility","hidden");else{dots[j].setAttribute("cx",x(i));dots[j].setAttribute("cy",y(v));dots[j].setAttribute("visibility","visible")}});
+    tip.innerHTML="<b>"+lab(i)+"</b>"+list.map(([a,n,c])=>[a,c,val(a,i)]).sort((p,q)=>(q[2]??-1)-(p[2]??-1)).map(([a,c,v])=>"<div><span><i style=\"background:var("+c+")\"></i>"+a+"</span><span>"+fv(v,k,false)+"</span></div>").join("");
+    tip.style.display="block";const tw=tip.offsetWidth,px=x(i)+14;tip.style.left=(px+tw>W?x(i)-tw-14:px)+"px";tip.style.top="14px"};
+  hit.addEventListener("pointermove",mv);hit.addEventListener("pointerdown",mv);
+  hit.addEventListener("pointerleave",()=>{tip.style.display="none";cross.setAttribute("visibility","hidden");dots.forEach(d=>d.setAttribute("visibility","hidden"))});
+  drawNotes(svg,x,T,H-B,T,list.map(q=>q[0]),a0,a1,W);
+}
+const legendOf=list=>list.map(([a,n,c])=>"<span><i style=\"background:var("+c+")\"></i>"+a+" "+n+"</span>").join("");
+$("nx-alegend").innerHTML=legendOf(AIR);
+function drawCmp(){
+  const list=AIR.filter(x=>st.active.has(x[0])&&!BIG.includes(x[0]));
+  $("nx-cmpsub").textContent=METRICS[st.metric].label+" for the regional airports on one shared scale. Hover to compare any month.";
+  $("nx-clegend").innerHTML=legendOf(list);
+  drawLines($("nx-csvg"),$("nx-ctip"),$("nx-cmp"),list);
+}
+function drawAllSix(){
+  const m=METRICS[st.metric];
+  $("nx-allsub").textContent=m.kind==="ratio"?"All eight airports on one scale. Load factor is a percentage, so nothing gets crushed here.":"All eight airports on one plain scale ("+m.label.toLowerCase()+"). Omaha is so much larger that the regional airports hug the bottom of the chart. That is the gap, drawn to scale.";
+  drawLines($("nx-asvg"),$("nx-atip"),$("nx-all"),AIR);
+}
+
+/* ---------- overview strip + brush ---------- */
+const osvg=$("nx-osvg"),ovw=$("nx-ovw");
+function drawOverview(){
+  const W=ovw.clientWidth||600,H=56,L=46,R=14,T=4,B=4;osvg.setAttribute("viewBox","0 0 "+W+" "+H);osvg.setAttribute("height",H);osvg.innerHTML="";
+  const x=i=>L+(W-L-R)*i/(N-1);window.__ox={x,L,R,W};
+  mk("rect",{x:L,y:T,width:W-L-R,height:H-T-B,fill:css("--chip"),rx:3},osvg);
+  AIR.filter(a=>st.active.has(a[0])).forEach(([a,n,c])=>{const v=SER[a][st.metric];let m=0;v.forEach(q=>{if(q!=null&&q>m)m=q});if(!m)return;let d="";v.forEach((q,i)=>{if(q!=null)d+=(d?"L":"M")+x(i).toFixed(1)+" "+(T+(H-T-B)*(1-q/m)).toFixed(1)});
+    mk("path",{d,fill:"none",stroke:css(c),"stroke-width":1.25,opacity:.85},osvg)});
+  const [a,b]=st.range;
+  mk("rect",{x:L,y:T,width:Math.max(0,x(a)-L),height:H-T-B,fill:css("--bg"),opacity:.65},osvg);
+  mk("rect",{x:x(b),y:T,width:Math.max(0,W-R-x(b)),height:H-T-B,fill:css("--bg"),opacity:.65},osvg);
+  mk("rect",{x:x(a),y:T,width:Math.max(2,x(b)-x(a)),height:H-T-B,fill:"none",stroke:css("--ink"),"stroke-width":1.5,rx:2},osvg);
+  [a,b].forEach(i=>mk("rect",{x:x(i)-3,y:H/2-10,width:6,height:20,rx:3,fill:css("--ink")},osvg));
+  osvg.style.cursor="ew-resize";
+}
+(function brush(){
+  let mode=null,anchor=0,orig=null;
+  const idxAt=e=>{const r=osvg.getBoundingClientRect(),{L,R,W}=window.__ox;return Math.max(0,Math.min(N-1,Math.round((e.clientX-r.left-L)/(W-L-R)*(N-1))))};
+  osvg.addEventListener("pointerdown",e=>{const i=idxAt(e),[a,b]=st.range,tol=Math.max(2,Math.round(N*8/(window.__ox.W-window.__ox.L)));
+    if(Math.abs(i-a)<=tol)mode="l";else if(Math.abs(i-b)<=tol)mode="r";else if(i>a&&i<b){mode="m";anchor=i;orig=[a,b]}else{mode="n";anchor=i;st.range=[i,Math.min(N-1,i+1)]}
+    osvg.setPointerCapture(e.pointerId);e.preventDefault();drawAll()});
+  osvg.addEventListener("pointermove",e=>{if(!mode)return;const i=idxAt(e);let [a,b]=st.range;
+    if(mode==="l")a=Math.min(i,b-5);else if(mode==="r")b=Math.max(i,a+5);
+    else if(mode==="m"){const d=Math.max(-orig[0],Math.min(N-1-orig[1],i-anchor));a=orig[0]+d;b=orig[1]+d}
+    else{a=Math.min(anchor,i);b=Math.max(anchor,i)}
+    st.range=[Math.max(0,a),Math.min(N-1,Math.max(b,a+1))];drawAll()});
+  const end=()=>{if(mode==="n"&&st.range[1]-st.range[0]<5)st.range=[Math.max(0,st.range[0]),Math.min(N-1,st.range[0]+5)];mode=null;drawAll()};
+  osvg.addEventListener("pointerup",end);osvg.addEventListener("pointercancel",end);
+})();
+
+/* ---------- heatmap ---------- */
+const hsvg=$("nx-hsvg"),htip=$("nx-htip"),heatW=$("nx-heat");
+function drawHeat(){
+  const a=st.heat,k=st.metric,v=SER[a][k],W=heatW.clientWidth||600,L=40,T=18,R=4;
+  const years=[];for(let y=yr(0);y<=yr(N-1);y++)years.push(y);
+  const cw=(W-L-R)/12,ch=Math.max(16,Math.min(24,cw*.55)),H=T+ch*years.length+4;
+  hsvg.setAttribute("viewBox","0 0 "+W+" "+H);hsvg.setAttribute("height",H);hsvg.innerHTML="";
+  hsvg.setAttribute("aria-label","Heatmap of "+METRICS[k].label+" by month and year for "+a);
+  $("nx-heatsub").textContent=st.share?"Each month relative to that year's average month, so you see the shape of the seasons (1.0× = an average month) regardless of airport size.":"Each cell is one month of "+METRICS[k].label.toLowerCase()+" at "+a+" – "+DATA.names[a].replace(/ \(.*\)/,"")+". Darker means more.";
+  const yAvg={};years.forEach(y=>{const q=[];v.forEach((z,i)=>{if(yr(i)===y&&z!=null)q.push(z)});yAvg[y]=q.length?q.reduce((s,t)=>s+t,0)/q.length:0});
+  const cv=i=>{const z=v[i];if(z==null)return null;return st.share?(yAvg[yr(i)]?z/yAvg[yr(i)]:0):z};
+  let mx=0;for(let i=0;i<N;i++){const z=cv(i);if(z!=null&&z>mx)mx=z}
+  MON.forEach((m,j)=>{const t=mk("text",{x:L+cw*j+cw/2,y:T-6,"text-anchor":"middle"},hsvg);t.textContent=m});
+  years.forEach((y,r)=>{const t=mk("text",{x:L-6,y:T+ch*r+ch/2+4,"text-anchor":"end"},hsvg);t.textContent=y});
+  const [r0,r1]=st.range;
+  for(let i=0;i<N;i++){const r=yr(i)-years[0],c=mo(i),z=cv(i),inr=i>=r0&&i<=r1;
+    const e=mk("rect",{x:L+cw*c+1,y:T+ch*r+1,width:cw-2,height:ch-2,rx:3,fill:z==null?"none":mix(css("--seq0"),css("--seq1"),mx?Math.pow(z/mx,.8):0),opacity:inr?1:.3},hsvg);
+    e.dataset.i=i;
+  }
+  for(let y=0;y<years.length;y++)for(let c=0;c<12;c++){const i=M.indexOf(years[y]+"-"+String(c+1).padStart(2,"0"));if(i<0)mk("rect",{x:L+cw*c+1,y:T+ch*y+1,width:cw-2,height:ch-2,rx:3,fill:"none",stroke:css("--grid"),"stroke-dasharray":"2 3"},hsvg)}
+  hsvg.onpointermove=e=>{const el=e.target;if(!el.dataset||el.dataset.i==null){htip.style.display="none";return}
+    const i=+el.dataset.i,z=v[i],bx=heatW.getBoundingClientRect(),rr=el.getBoundingClientRect();
+    htip.innerHTML="<b>"+a+" · "+lab(i)+"</b><div><span>"+METRICS[k].label+"</span><span>"+fv(z,k,false)+"</span></div>"+(st.share&&yAvg[yr(i)]?"<div><span>vs. year's avg month</span><span>"+(z/yAvg[yr(i)]).toFixed(2)+"×</span></div>":"");
+    htip.style.display="block";const tw=htip.offsetWidth;let px=rr.left-bx.left+rr.width+8;if(px+tw>bx.width)px=rr.left-bx.left-tw-8;htip.style.left=Math.max(0,px)+"px";htip.style.top=(rr.top-bx.top-6)+"px"};
+  hsvg.onpointerleave=()=>{htip.style.display="none"};
+}
+
+/* ---------- summary table ---------- */
+function drawTable(){
+  const k=st.metric,m=METRICS[k],[a0,a1]=st.range,n=a1-a0+1;
+  const rows=AIR.map(([a,nm,c])=>{
+    const raw=SER[a][k];let tot=0,cnt=0,pk=-1,pv=-1;
+    for(let i=a0;i<=a1;i++){const z=raw[i];if(z==null)continue;tot+=z;cnt++;if(z>pv){pv=z;pk=i}}
+    let overall,avg,vs;
+    if(m.kind==="ratio"){const P=DATA.s[a].pax_dep,S=DATA.s[a].seats;let p=0,s=0;for(let i=a0;i<=a1;i++){p+=P[i];s+=S[i]}overall=s?100*p/s:null;avg=cnt?tot/cnt:null;
+      let p9=0,s9=0;for(let i=0;i<N;i++)if(yr(i)===2019){p9+=P[i];s9+=S[i]}const o9=s9?100*p9/s9:null;vs=overall!=null&&o9!=null?(overall-o9>=0?"+":"")+(overall-o9).toFixed(1)+" pts":"–"}
+    else{overall=tot;avg=cnt?tot/cnt:null;const b=base2019(a,k);vs=b&&avg!=null?((avg/b-1)>=0?"+":"")+Math.round((avg/b-1)*100)+"%":"–"}
+    return "<tr><td><i style='background:var("+c+")'></i>"+a+" "+nm+"</td><td>"+(overall==null?"–":fv(overall,k,false))+"</td><td>"+(avg==null?"–":fv(avg,k,false))+"</td><td>"+(pk<0?"–":fv(pv,k,false)+" ("+lab(pk)+")")+"</td><td>"+vs+"</td></tr>"});
+  $("nx-table").innerHTML="<table><thead><tr><th>Airport</th><th>"+(m.kind==="ratio"?"Overall":"Total")+"</th><th>Monthly average</th><th>Peak month</th><th>vs. 2019 avg</th></tr></thead><tbody>"+rows.join("")+"</tbody></table>";
+}
+
+/* ---------- misc ---------- */
+function drawHint(){
+  const [a0,a1]=st.range;
+  $("nx-hint").textContent=st.metric==="pax_arr"?"Arrivals use BTS T-100 Domestic Market data (U.S. carriers), which counts passengers by origin\u2013destination and differs from the segment data used for the other metrics.":"";
+  $("nx-range").textContent=lab(a0)+" \u2013 "+lab(a1)+" ("+(a1-a0+1)+" months)";
+}
+$("nx-csv").onclick=()=>{
+  const act=AIR,h=["month"].concat(act.map(a=>a[0]));const [a0,a1]=st.range;const rows=[h.join(",")];
+  for(let i=a0;i<=a1;i++)rows.push([M[i]].concat(act.map(([a])=>{const v=val(a,i);return v==null?"":+v.toFixed(2)})).join(","));
+  const u=URL.createObjectURL(new Blob([rows.join("\n")],{type:"text/csv"})),l=document.createElement("a");l.href=u;l.download="nebraska_"+st.metric+(isIdx()?"_indexed":"")+".csv";l.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+$("nx-note").innerHTML="<b>Source:</b> U.S. Bureau of Transportation Statistics, T-100 Segment Summary by Origin Airport (data.bts.gov, r495-tyji) for departures, seats, flights, load factor and freight; T-100 Domestic Market, U.S. carriers (transtats.bts.gov) for arrivals. Shaded bands mark 3+ consecutive months with zero departing passengers. 2026 data runs through July. \u2020 Alliance and Chadron: Essential Air Service to Denver is flown by small independent carriers rather than a major airline or its regional partner; see the DOT\u2019s <a href=\"https://downloads.regulations.gov/DOT-OST-2000-8322-0199/attachment_1.pdf\">July 2025 order</a>, <a href=\"https://ch-aviation.com/portal/news/76302-dot-selects-denver-air-connection-for-eas-at-alliance-ne\">ch-aviation</a> and <a href=\"https://nebraskapublicmedia.org/en/news/news-articles/chadron-alliance-will-continue-flights-to-denver-colorado-with-eas-contract-renewal/\">Nebraska Public Media</a>.";
+const gsvg=$("nx-gsvg"),gapW=$("nx-gap");
+function drawGap(){
+  const k=st.metric,m=METRICS[k],[a0,a1]=st.range,W=gapW.clientWidth||600,narrow=W<520;
+  const L=narrow?44:150,R=narrow?96:205,rh=28,T=2;
+  const rows=AIR.map(([a,n,c])=>{let v=null;
+    if(m.kind==="ratio"){let p=0,s=0;for(let i=a0;i<=a1;i++){p+=DATA.s[a].pax_dep[i];s+=DATA.s[a].seats[i]}v=s?100*p/s:null}
+    else{let s=0,cn=0;for(let i=a0;i<=a1;i++){const z=SER[a][k][i];if(z!=null){s+=z;cn++}}v=cn?s/cn:null}
+    return {a,n,c,v}}).sort((p,q)=>(q.v??-1)-(p.v??-1));
+  const mx=m.kind==="ratio"?100:(Math.max(...rows.map(r=>r.v||0))||1),H=T+rows.length*rh+2,bw=W-L-R,lbf=rows.find(r=>r.a==="LBF");
+  gsvg.setAttribute("viewBox","0 0 "+W+" "+H);gsvg.setAttribute("height",H);gsvg.innerHTML="";
+  gsvg.setAttribute("aria-label","Average month of "+m.label.toLowerCase()+" at each airport, "+lab(a0)+" to "+lab(a1));
+  const mult=v=>v>=10?Math.round(v).toLocaleString("en-US"):v>=1?v.toFixed(1):v.toFixed(2);
+  rows.forEach((r,j)=>{const y=T+j*rh;
+    const t1=mk("text",{x:L-8,y:y+rh/2+4,"text-anchor":"end"},gsvg);t1.style.fill=css("--ink");t1.style.fontSize="12px";t1.textContent=narrow?r.a:r.a+" "+r.n;
+    const w=r.v==null?0:Math.max(2,bw*r.v/mx);mk("rect",{x:L,y:y+4,width:w,height:rh-8,fill:css(r.c),rx:2},gsvg);
+    const t2=mk("text",{x:L+w+8,y:y+rh/2+4},gsvg);t2.style.fontSize="12px";
+    const a=document.createElementNS(NS,"tspan");a.style.fill=css("--ink");a.style.fontWeight="600";a.textContent=fv(r.v,k,false)+(m.kind==="sum"?"/mo":"");t2.appendChild(a);
+    if(m.kind==="sum"&&!narrow&&lbf&&lbf.v>0&&r.v!=null){const b=document.createElementNS(NS,"tspan");b.style.fill=css("--muted");b.textContent=r.a==="LBF"?"  \u00B7  baseline":"  \u00B7  "+mult(r.v/lbf.v)+"\u00D7 N. Platte";t2.appendChild(b)}});
+  const sub=$("nx-gapsub"),g=n=>{const r=rows.find(q=>q.a===n);return lbf&&lbf.v>0&&r&&r.v?Math.round(r.v/lbf.v).toLocaleString("en-US"):null};
+  sub.textContent=m.kind==="ratio"?"Load factor is a percentage, so airport size doesn\u2019t dominate it. These bars are directly comparable.":"Average month in the selected period ("+m.label.toLowerCase()+"). The multipliers compare each airport with North Platte: Lincoln runs about "+g("LNK")+"\u00D7 its numbers and Omaha about "+g("OMA")+"\u00D7.";
+}
+function drawAll(){closeNote();syncChips();drawHint();drawSM();drawCmp();drawGap();drawAllSix();drawOverview();drawHeat();drawTable();post()}
+function post(){try{parent!==window&&parent.postMessage({nxHeight:root.scrollHeight},"*")}catch(e){}}
+drawAll();
+if(window.ResizeObserver){let t;new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(drawAll,60)}).observe(root)}else addEventListener("resize",drawAll);
+})();
+</script>
+</div>
