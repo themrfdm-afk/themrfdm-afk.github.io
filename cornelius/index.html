@@ -59,6 +59,7 @@
   #cross::before { left: 6px; top: 0; width: 2px; height: 14px; }
   #cross::after { top: 6px; left: 0; height: 2px; width: 14px; }
   #banner { position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%); font-size: 40px; font-weight: 700; color: #fff; text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000; white-space: nowrap; transition: opacity .6s; }
+  #danger { position: fixed; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(150,0,0,.55) 85%, rgba(90,0,0,.8) 100%); }
   #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .12s; }
 
   /* ---------- map ---------- */
@@ -191,6 +192,7 @@
   <div id="toast" class="bevel hidden"></div>
   <div id="banner" style="opacity:0"></div>
 </div>
+<div id="danger"></div>
 <div id="fade"></div>
 
 <div id="mapWin" class="win hidden">
@@ -360,8 +362,8 @@ function makeTextures() {
    sprite art (all original, drawn in code)
    ========================================================= */
 function line(g, x1, y1, x2, y2) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); }
-function hand(g, x, y, ang) { for (const a of [-.6, 0, .6]) line(g, x, y, x + Math.cos(ang + a) * 12, y + Math.sin(ang + a) * 12); }
-function arm(g, pts) { g.strokeStyle = '#1a1a1a'; g.lineWidth = 7; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.stroke(); const n = pts.length; g.lineWidth = 5; hand(g, pts[n - 2], pts[n - 1], Math.atan2(pts[n - 1] - pts[n - 3], pts[n - 2] - pts[n - 4])); }
+function hand(g, x, y, ang, L = 12) { for (const a of [-.6, 0, .6]) line(g, x, y, x + Math.cos(ang + a) * L, y + Math.sin(ang + a) * L); }
+function arm(g, pts, claw) { g.strokeStyle = '#1a1a1a'; g.lineWidth = 7; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.stroke(); const n = pts.length; g.lineWidth = claw ? 4 : 5; hand(g, pts[n - 2], pts[n - 1], Math.atan2(pts[n - 1] - pts[n - 3], pts[n - 2] - pts[n - 4]), claw ? 20 : 12); }
 
 // mood: 0 happy, 1 grumpy, 2 furious. pose: wave1 wave2 reach1 reach2 down
 function drawCorn(g, mood, pose) {
@@ -381,15 +383,19 @@ function drawCorn(g, mood, pose) {
     reach2: [[74, 238, 28, 218, 10, 186], [182, 238, 228, 218, 246, 186]],
     down: [[74, 238, 50, 292], [182, 238, 206, 292]],
   }[pose];
-  arm(g, P[0]); arm(g, P[1]);
-  // cob
-  g.save(); g.beginPath(); g.ellipse(cx, 188, 64, 128, 0, 0, Math.PI * 2); g.fillStyle = '#e2a90c'; g.fill(); g.clip();
+  const scary = mood > 0 && pose.startsWith('reach');
+  arm(g, P[0], scary); arm(g, P[1], scary);
+  // cob (kernels go a little burnt when he's mad)
+  const kc = mood === 2 ? ['#e0a420', '#9a5a08'] : mood === 1 ? ['#f2c22e', '#a87400'] : ['#ffd43a', '#b98100'];
+  const kr = mulberry32(7);
+  g.save(); g.beginPath(); g.ellipse(cx, 188, 64, 128, 0, 0, Math.PI * 2); g.fillStyle = mood ? '#b9840a' : '#e2a90c'; g.fill(); g.clip();
   for (let row = 0; row < 20; row++) for (let col = -1; col < 11; col++) {
     const x = 60 + col * 14 + (row % 2 ? 7 : 0), y = 62 + row * 14;
-    g.fillStyle = '#ffd43a'; rr(g, x - 6, y - 6, 12, 12, 4); g.fill(); g.strokeStyle = '#b98100'; g.lineWidth = 1.5; g.stroke();
+    g.fillStyle = mood && kr() < .12 ? '#6a3a06' : kc[0]; rr(g, x - 6, y - 6, 12, 12, 4); g.fill(); g.strokeStyle = kc[1]; g.lineWidth = 1.5; g.stroke();
     g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(x - 3, y - 4, 3, 3);
   }
-  if (mood === 2) { g.fillStyle = 'rgba(235,30,20,.38)'; g.fillRect(0, 0, 256, 384); }
+  if (mood === 2) { g.fillStyle = 'rgba(200,20,10,.32)'; g.fillRect(0, 0, 256, 384); }
+  if (mood) { const sh = g.createLinearGradient(0, 70, 0, 175); sh.addColorStop(0, 'rgba(0,0,0,.55)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = sh; g.fillRect(0, 60, 256, 120); }
   g.restore();
   g.strokeStyle = '#8a5a00'; g.lineWidth = 4; g.beginPath(); g.ellipse(cx, 188, 64, 128, 0, 0, Math.PI * 2); g.stroke();
   // husks
@@ -399,18 +405,28 @@ function drawCorn(g, mood, pose) {
   leaf([84, 338, 84, 270, 108, 226, 130, 280, 150, 338], '#6cc045');
   leaf([172, 338, 172, 270, 148, 226, 126, 280, 106, 338], '#63b53f');
   // face
-  g.fillStyle = '#fff'; g.strokeStyle = '#111'; g.lineWidth = 4;
-  for (const ex of [104, 152]) { g.beginPath(); g.ellipse(ex, 142, 17, 21, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
-  g.fillStyle = '#111'; const pr = mood === 2 ? 5 : 7;
-  g.beginPath(); g.arc(108, 147, pr, 0, 7); g.fill(); g.beginPath(); g.arc(148, 147, pr, 0, 7); g.fill();
+  g.fillStyle = mood === 2 ? '#fff6d8' : '#fff'; g.strokeStyle = '#111'; g.lineWidth = 4;
+  for (const ex of [104, 152]) { g.beginPath(); g.ellipse(ex, 142, 17, mood ? 17 : 21, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
+  if (mood) { // little red glowing pupils
+    g.save(); g.shadowColor = '#ff2010'; g.shadowBlur = mood === 2 ? 14 : 8; g.fillStyle = '#d40000';
+    for (const px of [108, 148]) { g.beginPath(); g.arc(px, 146, mood === 2 ? 5 : 6, 0, 7); g.fill(); }
+    g.restore(); g.fillStyle = '#fff'; g.fillRect(106, 143, 2, 2); g.fillRect(146, 143, 2, 2);
+  } else { g.fillStyle = '#111'; g.beginPath(); g.arc(108, 147, 7, 0, 7); g.fill(); g.beginPath(); g.arc(148, 147, 7, 0, 7); g.fill(); }
   g.lineWidth = mood ? 8 : 5;
   if (mood === 0) { g.beginPath(); g.arc(104, 120, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); g.beginPath(); g.arc(152, 120, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
   else { const s = mood === 2 ? 18 : 9; line(g, 86, 116 - s / 2, 122, 122 + s / 2); line(g, 170, 116 - s / 2, 134, 122 + s / 2); }
   g.fillStyle = '#e88a1a'; g.strokeStyle = '#8a4a00'; g.lineWidth = 2; g.beginPath(); g.ellipse(128, 172, 9, 7, 0, 0, 7); g.fill(); g.stroke();
   g.strokeStyle = '#111'; g.lineWidth = 4;
   if (mood === 0) { g.beginPath(); g.moveTo(98, 190); g.quadraticCurveTo(128, 240, 158, 190); g.closePath(); g.fillStyle = '#3a0a0a'; g.fill(); g.stroke(); g.fillStyle = '#ff7a9a'; g.beginPath(); g.ellipse(128, 212, 12, 7, 0, 0, 7); g.fill(); }
-  else if (mood === 1) { g.lineWidth = 6; g.beginPath(); g.moveTo(104, 214); g.quadraticCurveTo(128, 190, 152, 214); g.stroke(); }
-  else { g.fillStyle = '#3a0a0a'; g.beginPath(); g.ellipse(128, 208, 26, 20, 0, 0, 7); g.fill(); g.stroke(); g.fillStyle = '#fff'; g.fillRect(108, 191, 40, 7); g.fillRect(112, 220, 32, 5); }
+  else if (mood === 1) { // gritted-teeth grimace
+    g.fillStyle = '#fff'; rr(g, 100, 196, 56, 18, 6); g.fill(); g.lineWidth = 4; g.stroke();
+    g.lineWidth = 2; line(g, 100, 205, 156, 205); for (let x = 108; x < 156; x += 8) line(g, x, 196, x, 214);
+  } else { // wide open mouth with pointy teeth
+    g.fillStyle = '#2a0505'; g.beginPath(); g.ellipse(128, 210, 30, 22, 0, 0, 7); g.fill(); g.lineWidth = 4; g.stroke();
+    g.fillStyle = '#fff';
+    g.beginPath(); for (let i = 0; i < 6; i++) { const x = 104 + i * 8; g.moveTo(x, 192); g.lineTo(x + 8, 192); g.lineTo(x + 4, 204); } g.fill();
+    g.beginPath(); for (let i = 0; i < 5; i++) { const x = 108 + i * 8; g.moveTo(x, 229); g.lineTo(x + 8, 229); g.lineTo(x + 4, 219); } g.fill();
+  }
   // hat (plain red cowboy hat)
   g.fillStyle = '#d01c1c'; g.strokeStyle = '#6a0a0a'; g.lineWidth = 4;
   g.beginPath(); g.moveTo(84, 74); g.lineTo(92, 24); g.quadraticCurveTo(128, 6, 164, 24); g.lineTo(172, 74); g.closePath(); g.fill(); g.stroke();
@@ -1056,6 +1072,7 @@ function updateCorn(dt) {
     corn.timer = stepInterval(); corn.budget = stepLen(); corn.squash = 1; corn.anim++;
     const same = corn.zi === S.zi, dist = same ? Math.hypot(corn.X - S.px, corn.Z - S.pz) : 999;
     SFX.pop(same ? Math.max(.12, 1 - dist / 90) : .25, !same);
+    if (same && dist < 30) { const k = 1 - dist / 30; S.shake = Math.max(S.shake || 0, k * .22); tone(55, .3, 'sine', .35 * k, -15); }
     const [cx, cz] = toCell(corn.zi, corn.X, corn.Z), [px, pz] = toCell(S.zi, S.px, S.pz);
     const p = bfs(nodeOf(corn.zi, cx, cz), nodeOf(S.zi, px, pz));
     corn.path = p || [];
@@ -1124,6 +1141,9 @@ function updatePlayer(dt) {
     if (ti.enter) { banner(zn.name); if (zn.b.coffee) tip('inside', 'You\'re inside! Follow the arrow to find the coffee, then come back out the EXIT door.'); }
   }
   camera.position.set(S.px, EYE + (moving ? Math.sin(S.time * (speed > WALK ? 14 : 10)) * .06 : 0), S.pz);
+  if (S.shake > 0) { camera.position.x += (rnd() - .5) * S.shake; camera.position.y += (rnd() - .5) * S.shake; S.shake = Math.max(0, S.shake - dt * .9); }
+  const near = S.chasing && corn.zi === S.zi ? clamp(1 - Math.hypot(corn.X - S.px, corn.Z - S.pz) / 32, 0, 1) : 0;
+  $('danger').style.opacity = (near * .85).toFixed(2);
   camera.rotation.y = S.yaw; camera.rotation.x = S.pitch;
 }
 function pickups() {
@@ -1209,7 +1229,7 @@ function guideTarget() {
   if (zn.outdoor) {
     if (S.coffees >= 7) { const b = BUILDINGS.find(b => b.registrar); return { X: wx(0, b.door[0]), Z: wz(0, b.door[1]), txt: `🎓 Go to the ${b.short || b.name}` }; }
     let best = null, bd = 1e9;
-    for (const c of coffees) { if (c.taken) continue; const b = c.b, X = wx(0, b.door[0]), Z = wz(0, b.door[1]), d = Math.hypot(X - S.px, Z - S.pz); if (d < bd) { bd = d; best = { X, Z, txt: `☕ Nearest coffee: ${b.name}` }; } }
+    for (const c of coffees) { if (c.taken) continue; const b = c.b, X = wx(0, b.door[0]), Z = wz(0, b.door[1]), d = Math.hypot(X - S.px, Z - S.pz); if (d < bd) { bd = d; best = { X, Z, txt: `☕ ${b.name}` }; } }
     return best;
   }
   const c = coffees.find(c => !c.taken && c.zi === S.zi);
@@ -1218,13 +1238,57 @@ function guideTarget() {
   if (reg && S.coffees >= 7) return { X: reg.X, Z: reg.Z, txt: '🎓 Walk the line to the Registrar desk!' };
   return { X: wx(S.zi, zn.X[0]), Z: wz(S.zi, zn.X[1]), txt: reg ? `🚪 Need ${7 - S.coffees} more coffee${7 - S.coffees === 1 ? '' : 's'}. Head for the EXIT` : '🚪 Got it! Head for the EXIT' };
 }
-function updateGuide() {
-  const t = guideTarget(); if (!t) return;
-  const dx = t.X - S.px, dz = t.Z - S.pz, d = Math.hypot(dx, dz);
+// The arrow follows the real walking route (around buildings, shelves, rope lines),
+// pointing at the farthest point along the route you can see in a straight line.
+const G = { t: 0, wp: null, dist: 0, target: null };
+function clearLine(zi, X0, Z0, X1, Z1, goalCell) {
+  const d = Math.hypot(X1 - X0, Z1 - Z0), n = Math.ceil(d / .5);
+  for (let i = 1; i <= n; i++) {
+    const X = X0 + (X1 - X0) * i / n, Z = Z0 + (Z1 - Z0) * i / n, [cx, cz] = toCell(zi, X, Z);
+    if (goalCell && cx === goalCell[0] && cz === goalCell[1]) return true;
+    if (!isWalk(zi, cx, cz)) return false;
+  }
+  return true;
+}
+function routeGuide(t) {
+  const [px, pz] = toCell(S.zi, S.px, S.pz), goal = toCell(S.zi, t.X, t.Z);
+  const path = bfs(nodeOf(S.zi, px, pz), nodeOf(S.zi, goal[0], goal[1]));
+  G.wp = { X: t.X, Z: t.Z }; G.dist = Math.hypot(t.X - S.px, t.Z - S.pz);
+  if (!path || !path.length) return;
+  G.dist = path.length * C;
+  for (let i = Math.min(path.length - 1, 12); i >= 0; i--) {
+    const [zi, x, z] = nodeXY(path[i]); if (zi !== S.zi) continue;
+    const X = i === path.length - 1 ? t.X : wx(zi, x), Z = i === path.length - 1 ? t.Z : wz(zi, z);
+    if (clearLine(S.zi, S.px, S.pz, X, Z, goal)) { G.wp = { X, Z }; return; }
+  }
+  const [, x, z] = nodeXY(path[0]); G.wp = { X: wx(S.zi, x), Z: wz(S.zi, z) };
+}
+let beacon;
+function makeBeacon() {
+  const c = cvs(128, 160), g = c.getContext('2d');
+  g.fillStyle = '#ffd400'; g.strokeStyle = '#000'; g.lineWidth = 8; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(40, 10); g.lineTo(88, 10); g.lineTo(88, 80); g.lineTo(118, 80); g.lineTo(64, 150); g.lineTo(10, 80); g.lineTo(40, 80); g.closePath(); g.stroke(); g.fill();
+  g.fillStyle = '#c8102e'; g.beginPath(); g.moveTo(48, 18); g.lineTo(80, 18); g.lineTo(80, 88); g.lineTo(100, 88); g.lineTo(64, 136); g.lineTo(28, 88); g.lineTo(48, 88); g.closePath(); g.fill();
+  beacon = new THREE.Sprite(new THREE.SpriteMaterial({ map: mkTex(c, false), transparent: true, depthTest: false, fog: false }));
+  beacon.renderOrder = 999; beacon.center.set(.5, 0); beacon.visible = false; scene.add(beacon);
+}
+function updateGuide(dt) {
+  const t = guideTarget(); if (!t) { beacon.visible = false; return; }
+  G.t -= dt;
+  if (G.t <= 0 || G.target !== t.txt) { G.t = .2; G.target = t.txt; routeGuide(t); }
+  const dx = G.wp.X - S.px, dz = G.wp.Z - S.pz;
   const rel = Math.atan2(-dx, -dz) - S.yaw;
-  const a = $('arrow');
-  a.style.transform = `rotate(${-rel}rad)`; a.classList.toggle('here', d < 8);
-  $('goalTxt').textContent = `${t.txt} · ${Math.round(d)}m`;
+  let r = ((rel + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+  const a = $('arrow'), close = G.dist < 7;
+  a.style.transform = `rotate(${-r}rad)`; a.classList.toggle('here', close);
+  const hint = close ? 'right here!' : Math.abs(r) > 2.4 ? 'turn around!' : `${Math.round(G.dist)}m`;
+  $('goalTxt').textContent = `${t.txt} · ${hint}`;
+  // floating beacon over the destination, visible through walls
+  const td = Math.hypot(t.X - S.px, t.Z - S.pz);
+  beacon.visible = td > 5;
+  const s = clamp(td / 14, 1.6, 5);
+  beacon.scale.set(s * .8, s, 1);
+  beacon.position.set(t.X, (zones[S.zi].outdoor ? 8 : 2.6) + Math.sin(S.time * 3) * .3, t.Z);
 }
 let bannerT = 0;
 function banner(msg) { const b = $('banner'); b.textContent = msg; b.style.opacity = 1; bannerT = 1.8; }
@@ -1414,6 +1478,7 @@ for (const t in ITEMS) itemIcons[t] = itemCanvas(t).toDataURL();
 for (const pose of ['wave1', 'wave2', 'reach1', 'reach2']) for (const m of [0, 1, 2]) cornTex[pose + m] = mkTex(cornCanvas(m, pose), false);
 cornSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: cornTex.wave10, transparent: true, alphaTest: .1 }));
 cornSprite.center.set(.5, 0); scene.add(cornSprite);
+makeBeacon();
 drawCorn($('titleCorn').getContext('2d'), 0, 'wave1');
 let tw = 0; setInterval(() => { if (S.mode === 'title') drawCorn($('titleCorn').getContext('2d'), 0, (tw++ % 2) ? 'wave2' : 'wave1'); }, 450);
 showBest();
@@ -1425,6 +1490,7 @@ const clock = new THREE.Clock();
 function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), .05);
+  if (!['play', 'phone', 'paused'].includes(S.mode)) { $('danger').style.opacity = 0; if (beacon) beacon.visible = false; }
   const showTouch = S.mobile && S.mode === 'play';
   if (showTouch === touchEl.classList.contains('hidden')) { touchEl.classList.toggle('hidden', !showTouch); if (!showTouch) resetTouch(); }
   if (S.mode === 'play') {
@@ -1433,7 +1499,7 @@ function loop() {
     if (S.mode === 'play') { updateCorn(dt); updateProjectiles(dt); }
     const it = nearestInteract(), pr = $('prompt');
     if (it && S.mode === 'play') { const K = S.mobile ? '✋' : 'E'; pr.textContent = it.kind === 'vend' ? `${K} — Buy a snack (1 quarter, you have ${S.quarters})` : `${K} — Talk to the Registrar (${S.coffees}/7 coffees)`; pr.classList.remove('hidden'); } else pr.classList.add('hidden');
-    if (S.mode === 'play') updateGuide();
+    if (S.mode === 'play') updateGuide(dt);
     $('staminaFill').style.width = S.stamina + '%';
     $('staminaFill').style.background = S.scooter > 0 ? '#9be22b' : S.stamina < 25 ? '#e6a222' : '#22e622';
     if (!$('mapWin').classList.contains('hidden')) drawMap();
