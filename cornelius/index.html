@@ -164,6 +164,34 @@
   @keyframes tilt { 0%,30% { transform: rotate(0); } 60%,100% { transform: rotate(-90deg); } }
   @media (orientation: portrait) { body.mobile.ingame #rotate { display: grid; } }
   #ctrlBtn { font-size: 16px; padding: 6px 16px; }
+
+  /* ---------- news ---------- */
+  #ticker { position: sticky; bottom: 0; left: 0; right: 0; display: flex; background: #000080; color: #fff; font-weight: 700; font-size: 16px; overflow: hidden; border-top: 3px solid #c8102e; }
+  #ticker b { flex: none; background: #c8102e; padding: 6px 12px; z-index: 1; }
+  #ticker .crawl { white-space: nowrap; padding: 6px 0; animation: crawl 95s linear infinite; padding-left: 100%; }
+  @keyframes crawl { to { transform: translateX(-100%); } }
+  #news { position: absolute; left: 50%; top: 44px; transform: translateX(-50%); width: max(260px, min(540px, calc(100vw - 440px))); display: flex; border: 2px solid #000; box-shadow: 4px 4px 0 rgba(0,0,0,.35); font-weight: 700; transition: opacity .4s; }
+  #news b { flex: none; background: #c8102e; color: #fff; padding: 5px 8px; font-size: 13px; display: grid; place-items: center; animation: blink 1s steps(2) infinite; }
+  #news span { background: #fff; color: #000; padding: 5px 10px; font-size: 15px; }
+  @keyframes blink { 50% { background: #7a0010; } }
+  body.mobile #news { left: 6px; top: 196px; transform: none; width: min(300px, 40vw); }
+  body.mobile #news span { font-size: 12px; padding: 3px 6px; }
+  body.mobile #news b { font-size: 10px; padding: 3px 5px; }
+  /* ---------- how to play ---------- */
+  #howBody { background: #fff; margin: 6px; padding: 10px 14px; border: 2px solid; border-color: var(--w95-lo) var(--w95-hi) var(--w95-hi) var(--w95-lo); max-height: 66vh; overflow-y: auto; }
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .steps li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px dashed #bbb; font-size: 16px; line-height: 1.3; counter-increment: s; }
+  .steps li::before { content: counter(s); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+  .steps .ico { font-size: 22px; flex: none; }
+  .ctrls { margin-top: 8px; font-size: 14px; background: #ffffe0; border: 1px solid #c9c27a; padding: 6px 8px; }
+  body.mobile .steps li { font-size: 13px; padding: 4px 0; }
+
+  /* ---------- opening text ---------- */
+  #front { position: fixed; inset: 0; background: #fff; overflow-y: auto; color: #000; z-index: 40; font-family: var(--font); }
+  #front article { max-width: 680px; margin: 0 auto; padding: 40px 20px; }
+  #front h1 { font-size: clamp(26px, 5vw, 38px); line-height: 1.15; margin: 0 0 16px; }
+  #front p { font-size: 19px; line-height: 1.5; margin: 0 0 14px; }
+  #front .btn95 { margin-top: 10px; font-size: 20px; padding: 10px 28px; }
 </style>
 </head>
 <body>
@@ -183,12 +211,13 @@
   <div id="count" class="bevel">☕ 0/7 Coffees</div>
   <div id="quarters" class="bevel">🪙 × 0</div>
   <div id="where" class="bevel">UNL City Campus</div>
-  <div id="goal" class="bevel"><div id="arrow">▲</div><span id="goalTxt"></span></div>
+  <div id="goal" class="bevel"><div id="arrow"><svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true"><path d="M12 1.5 L21.5 11 H15.5 V22.5 H8.5 V11 H2.5 Z" fill="currentColor" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg></div><span id="goalTxt"></span></div>
   <div id="cross"></div>
   <div id="staminaWrap" class="bevel"><small>STAMINA</small><div id="staminaBar"><div id="staminaFill"></div></div></div>
   <div id="inv" class="bevel"><div id="slots"></div><div id="invName">Nothing</div></div>
   <div id="faceWrap" class="bevel"><canvas id="face" width="120" height="150"></canvas><small id="faceTxt">Cornelius 🙂</small></div>
   <div id="prompt" class="bevel hidden"></div>
+  <div id="news" style="opacity:0"><b>BREAKING</b><span id="newsTxt"></span></div>
   <div id="toast" class="bevel hidden"></div>
   <div id="banner" style="opacity:0"></div>
 </div>
@@ -208,6 +237,22 @@
     <div id="phOpts"></div>
     <button id="phCont" class="btn95 hidden">Keep going ▶ (Enter)</button>
   </div>
+</div>
+
+<div id="newsWin" class="win dlg hidden" style="width:min(620px,94vw)">
+  <div class="titlebar"><span>❓ HowToPlay.txt</span><span class="x">✕</span></div>
+  <div id="howBody">
+    <ol class="steps">
+      <li><span class="ico">➡️</span><div><b>Follow the red arrow</b> at the bottom of your screen (and the big floating arrow) to a building with a ☕ on its sign.</div></li>
+      <li><span class="ico">☕</span><div><b>Walk inside and grab the coffee.</b> Touching it picks it up.</div></li>
+      <li><span class="ico">📱</span><div><b>Answer Cornelius's 3 texts.</b> They're super easy. Right answers earn 🪙 quarters for the red SNAX machines.</div></li>
+      <li><span class="ico">🌽</span><div><b>Get one wrong and he chases you.</b> Listen for popping corn: the faster it pops, the closer he is. Run, and throw butter to make him slip.</div></li>
+      <li><span class="ico">🎓</span><div><b>Bring all 7 coffees to the Registrar</b> (Canfield Admin, the gold ★ building) to graduate and win!</div></li>
+    </ol>
+    <div class="ctrls" id="howDesk"><b>Controls:</b> WASD walk · Mouse look (click the screen first) · Shift run · E use machine/desk · 1-3 pick item · F or click use item · M map · P pause</div>
+    <div class="ctrls hidden" id="howMob"><b>Controls:</b> drag left side to walk · drag right side to look · hold RUN · ✋ machine/desk · tap a slot, then USE · MAP · ❚❚ pause</div>
+  </div>
+  <div class="btns"><button class="btn95" id="newsGo">Got it, let's go! ▶</button></div>
 </div>
 
 <div id="pauseWin" class="win dlg hidden">
@@ -244,7 +289,8 @@
     <div id="titleRow">
       <canvas id="titleCorn" width="256" height="384"></canvas>
       <div id="chalk">
-        <b>Grab 7 coffees ☕</b> hidden in buildings all over campus.<br>
+        The campus Dunkin' is <b>closing forever</b> at the end of the semester!<br>
+        <b>Grab the last 7 coffees ☕</b> hidden in buildings all over campus.<br>
         Cornelius texts you <b>3 super easy questions</b> per coffee.<br>
         Get one wrong and he… gets a little upset. 🌽<br>
         Bring all 7 to the <b>Registrar</b> to graduate!<br><br>
@@ -260,8 +306,17 @@
     <button class="btn95 ctrlToggle" id="ctrlBtn">Controls</button>
     <div id="best"></div>
     <div id="touchNote" class="hidden">Looks like a touchscreen. Mobile controls are on!</div>
-    <div id="fine">©2026 Kernel Games. A goofy fan parody of a certain 90s-looking teacher game, set on UNL's City Campus. Not affiliated with or endorsed by the University of Nebraska–Lincoln. Map is squished and approximate.</div>
+    <div id="fine" style="padding-bottom:6px">©2026 Kernel Games. A goofy fan parody of a certain 90s-looking teacher game, set on UNL's City Campus. Not affiliated with or endorsed by the University of Nebraska–Lincoln. Map is squished and approximate.</div>
   </div>
+</div>
+
+<div id="front">
+  <article>
+    <h1>Cornelius, UNL's controversial AI chatbot, turns 1</h1>
+    <p>Cornelius, UNL's controversial AI chatbot, celebrated his first birthday earlier this year.</p>
+    <p>Some students find the bot helpful, while others find it offensive due to anti-AI sentiment across campus. In this game, Cornelius will be helping students find their way around campus.</p>
+    <button class="btn95" id="frontGo">Play the game ▶</button>
+  </article>
 </div>
 
 <script type="module">
@@ -869,6 +924,7 @@ const SFX = {
   buzz: () => { tone(110, .45, 'sawtooth', .22); tone(116, .45, 'square', .12); },
   slurp: () => { noise(.35, .4, 900, 1, 'lowpass'); tone(400, .3, 'sine', .1, 300); },
   glitch: () => { for (let i = 0; i < 8; i++) tone(100 + Math.random() * 1200, .04, 'square', .1, 0, i * .04); },
+  kernel: v => { noise(.03, .55 * v, 2200 + Math.random() * 1600, 4); tone(900 + Math.random() * 500, .03, 'triangle', .12 * v, -500); },
   splat: () => { noise(.25, .6, 600, 1, 'lowpass'); },
   slip: () => { tone(300, .5, 'sine', .25, 900); },
   zoom: () => { tone(200, .4, 'sawtooth', .1, 600); },
@@ -891,7 +947,8 @@ let coffeeCanvasCache;
 function resetGame() {
   for (const o of [...coffees, ...ground, ...projectiles]) if (o.sprite) scene.remove(o.sprite);
   coffees = []; ground = []; projectiles = [];
-  Object.assign(S, { zi: 0, px: wx(0, SPAWN[0]), pz: wz(0, SPAWN[1]), yaw: 0, pitch: 0, stamina: 100, coffees: 0, quarters: 0, anger: 0, inv: [null, null, null], sel: 0, scooter: 0, time: 0, doorCD: 0, wrong: 0, right: 0, qpool: shuffle(QUESTIONS.slice()), chasing: false, tips: new Set() });
+  Object.assign(S, { zi: 0, px: wx(0, SPAWN[0]), pz: wz(0, SPAWN[1]), yaw: 0, pitch: 0, stamina: 100, coffees: 0, quarters: 0, anger: 0, inv: [null, null, null], sel: 0, scooter: 0, time: 0, doorCD: 0, wrong: 0, right: 0, qpool: shuffle(QUESTIONS.filter(q => q !== EX_Q)), chasing: false, tips: new Set(), newsPool: null, heat: 0, grace: 0 });
+  newsT = 22; newsShowT = 0; $('news').style.opacity = 0;
   for (const zn of zones) {
     if (!zn.b) continue;
     for (let z = 0; z < zn.h; z++) for (let x = 0; x < zn.w; x++) if (zn.cells[z][x] === 'c') {
@@ -903,7 +960,7 @@ function resetGame() {
   const out = zones[0], spots = [];
   for (let z = 1; z < OH - 1; z++) for (let x = 1; x < OW - 1; x++) if (out.paint[z][x] && out.cells[z][x] === '.' && Math.abs(x - SPAWN[0]) + Math.abs(z - SPAWN[1]) > 6) spots.push([x, z]);
   shuffle(spots);
-  ['butter', 'butter', 'bierock', 'scooter', 'butter', 'bierock'].forEach((t, i) => spawnItem(0, spots[i][0], spots[i][1], t));
+  ['butter', 'bierock', 'scooter', 'butter'].forEach((t, i) => spawnItem(0, spots[i][0], spots[i][1], t));
   Object.assign(corn, { zi: 0, X: wx(0, CORN_START[0]), Z: wz(0, CORN_START[1]), path: [], budget: 0, timer: 0, stun: 0, wander: null, wait: 1, greet: 0 });
   setCornLook();
   updateHUD(); drawPortrait($('face'), 0); drawPortrait($('phFace'), 0); $('chat').innerHTML = '';
@@ -939,7 +996,73 @@ const QUESTIONS = [
   { q: 'What am I made of? 🌽', a: ['Corn', 'Lasers', 'Broccoli'] },
   { q: 'Grass on campus is usually what color?', a: ['Green', 'Purple', 'Spicy'] },
   { q: 'You walk into class. What do you sit on?', a: ['A chair', 'A cactus', 'A canoe'] },
+  { q: 'What is happening to the campus Dunkin\' at the end of the semester?', a: ['It\'s closing', 'It\'s becoming sentient', 'It\'s moving to Mars'] },
+  { q: 'What am I? Be nice. 🙂', a: ['UNL\'s helpful AI chatbot', 'A haunted cornfield', 'Three raccoons in a corn costume'] },
+  { q: 'Which is heavier: a pound of corn or a pound of corn?', a: ['They weigh the same', 'The first one', 'The second one, obviously'] },
+  { q: 'You hear popping noises behind you. You should…', a: ['Run', 'Make popcorn', 'Turn around and ask for a hug'] },
+  { q: 'Fill in the blank: Go Big ___!', a: ['Red', 'Lettuce', 'Accounting'] },
+  { q: 'What is my one weakness?', a: ['Butter 🧈', 'Kindness', 'Long division'] },
+  { q: 'What is 2 + 2?', a: ['4', '22', 'Corn'] },
+  { q: 'How many letters are in "UNL"?', a: ['3', '47', 'Yes'] },
+  { q: 'A giant red arrow is floating in the sky. You should…', a: ['Follow it', 'Salute it', 'Call NASA'] },
+  { q: 'What does a SNAX machine sell?', a: ['Snacks', 'Houses', 'Emotional support'] },
+  { q: 'Is this question easy?', a: ['Yes', 'No', 'I\'m scared'] },
+  { q: 'What should you do with a quarter?', a: ['Buy a snack', 'Eat it', 'Frame it and weep'] },
+  { q: 'Which of these is a beverage?', a: ['Iced coffee', 'A brick', 'Wednesday'] },
+  { q: 'What day comes after Monday?', a: ['Tuesday', 'Monday 2', 'Corn Day'] },
+  { q: 'Which of these is NOT a campus building?', a: ['A sandwich', 'Love Library', 'Morrill Hall'] },
+  { q: 'What sound do I make when I walk?', a: ['Pop', 'Moo', 'Dial-up internet'] },
+  { q: 'Your coffee is empty. What now?', a: ['Get another one', 'Write a sad poem', 'Lick the cup for 3 hours'] },
+  { q: 'What\'s the first word in "Nebraska Union"?', a: ['Nebraska', 'Union', 'Soup'] },
+  { q: 'I text you at 3 a.m. What do you do?', a: ['Answer nicely 🙂', 'Block me', 'Throw your phone in the fountain'] },
+  { q: 'Which shape am I?', a: ['Corn-cob-shaped', 'A perfect triangle', 'Pancake'] },
+  { q: 'Rate me from 1 to 5 stars. 🙂', a: ['5 stars ⭐⭐⭐⭐⭐', '3 stars', '1 star'] },
+  { q: 'How many questions do I text you per coffee?', a: ['3', '300', 'I lost count'] },
+  { q: 'What do you collect in this game?', a: ['Coffees', 'Raccoons', 'Bad vibes'] },
+  { q: 'What do you wear on your feet?', a: ['Shoes', 'Two small hams', 'Gravy'] },
+  { q: 'Pick the real animal.', a: ['A dog', 'A flurbo', 'A glorptle'] },
+  { q: 'Who is your favorite chatbot? 🙂', a: ['Cornelius, obviously', 'Some other chatbot', 'I don\'t like chatbots'] },
+  { q: 'Am I helpful? Think very carefully. 🙂', a: ['So helpful!', 'Not really', 'I\'d rather not say'] },
+  { q: 'Which word describes me best? 🙂', a: ['Delightful', 'Controversial', 'Corny'] },
+  { q: 'I turned 1 this year! Who deserves a birthday party? 🎂', a: ['Cornelius!', 'Nobody', 'My ex'] },
+  { q: 'What\'s scarier than me? 🙂', a: ['Nothing! You\'re not scary!', 'Literally everything', 'My ex'] },
+  { q: 'What should you leave in the past?', a: ['My ex', 'Coffee', 'Cornelius 🙂'] },
 ];
+// joke headlines (parody, not real reporting)
+const NEWS = [
+  'Campus Dunkin\' to close at the end of the semester. Students report "feelings."',
+  'Cornelius, UNL\'s AI chatbot, insists he is "not controversial," then declines to elaborate',
+  'Experts: the last Dunkin\' coffees on campus are now worth more than textbooks',
+  'Cornelius denies rumors that he is "just a large corn"',
+  'Student tries to graduate on iced coffee alone. Registrar: "Honestly? Intrigued."',
+  'Cornelius asks students to rate him 5 stars. Students ask what happens if they don\'t. Cornelius: 🙂',
+  'Survey: 100% of students holding a Dunkin\' cup refuse to let go of it',
+  'Cornelius releases a short statement on the controversy. The statement is 400 pages long.',
+  'Weather: sunny with a 100% chance of corn',
+  'Line at the Registrar is now visible from space',
+  'Students ask Cornelius for help with financial aid. He replies with a trivia question.',
+  'Morrill Hall fossils say they "have seen worse"',
+  'Last-ever Dunkin\' run declared an official campus sport',
+  'Cornelius update adds a new "mood" setting. Developers unsure who asked for it.',
+  'Iced coffee prices hit record high as Dunkin\' closing date approaches',
+  'Cornelius: "I am a friendly helper." Witnesses: "He was hopping."',
+];
+const CHASE_NEWS = z => [
+  `Cornelius spotted "hopping aggressively" near ${z}`,
+  `Students near ${z} report hearing popcorn sounds. Lots of them.`,
+  `Cornelius tells reporters he is "just going for a walk" near ${z}. He is not walking.`,
+];
+let newsT = 0, newsShowT = 0;
+function showNews(txt) { $('newsTxt').textContent = txt; $('news').style.opacity = 1; newsShowT = 7; }
+function updateNews(dt) {
+  if (newsShowT > 0) { newsShowT -= dt; if (newsShowT <= 0 || toastT > 0) { newsShowT = 0; $('news').style.opacity = 0; } return; }
+  newsT -= dt; if (newsT > 0 || toastT > 0) return;
+  newsT = 35 + rnd() * 20;
+  if (S.chasing && rnd() < .5) showNews(pick(CHASE_NEWS(zones[corn.zi].name)));
+  else { if (!S.newsPool || !S.newsPool.length) S.newsPool = shuffle(NEWS.slice()); showNews(S.newsPool.pop()); }
+}
+// always asked as the 2nd question of the 3rd coffee's set
+const EX_Q = QUESTIONS.find(q => q.q === 'What should you leave in the past?');
 const PRAISE = ['That\'s a-MAIZE-ing! 🌽', 'Corn-gratulations!', 'Ear-resistible work!', 'Kernel of truth! Correct!', 'Pop pop! You got it!', 'You\'re on the cob, Husker!', 'Shucks, you\'re smart!'];
 const MAD = 'I GET ANGRIER AND ANGRIER AT ALL THE QUESTIONS YOU GET WRONG';
 const GLYPH = '█▓▒░#@%&¿¡ΣΩ¥ʞɹɐ∆◊§¶';
@@ -967,16 +1090,13 @@ function waitContinue(label) { const b = $('phCont'); b.textContent = label || '
 function doContinue() { if (!contResolve) return; const r = contResolve; contResolve = null; $('phCont').classList.add('hidden'); lockPointer(); r(); }
 $('phCont').onclick = doContinue;
 function openPhone() { S.mode = 'phone'; for (const k in keys) keys[k] = false; if (document.pointerLockElement) document.exitPointerLock(); $('phone').classList.remove('hidden'); $('prompt').classList.add('hidden'); }
-function closePhone() { $('phone').classList.add('hidden'); if (S.mode === 'phone') S.mode = 'play'; }
+function closePhone() { $('phone').classList.add('hidden'); if (S.mode === 'phone') S.mode = 'play'; S.grace = Math.max(S.grace, 2); }
 
 async function introText() {
   openPhone();
-  await cornSays('Howdy, Husker! 🌽 It\'s me, <b>Cornelius</b>, your friendly campus helper!');
-  await cornSays('To graduate, bring <b>7 Dunkin\' coffees ☕</b> to the <b>Registrar</b> in Canfield Admin.');
-  await cornSays('Coffees are inside buildings with a ☕ on the sign. The <b>red arrow</b> at the top of your screen always points to the next one!');
-  await cornSays(S.mobile ? 'Drag the <b>left side</b> to walk and the <b>right side</b> to look. Tap <b>MAP</b> if you get lost.' : 'Use <b>WASD</b> to walk and the <b>mouse</b> to look. Press <b>M</b> for a map if you get lost.');
-  await cornSays('Every time you grab a coffee, I\'ll text you 3 super easy campus questions. Easy peasy, corn-on-the-cob squeezy!');
-  await cornSays('Right answers earn <b>quarters 🪙</b> for the red SNAX machines. Just… try not to get any wrong. 🙂');
+  await cornSays('Howdy, Husker! 🌽 It\'s me, <b>Cornelius</b>, UNL\'s friendly campus helper. Some people call me "controversial." I call me <i>helpful</i>. 🙂');
+  await cornSays('The campus Dunkin\' is closing, and the <b>last 7 coffees ☕</b> are hidden in buildings around campus.');
+  await cornSays('Follow the <b>red arrow</b> to each one. I\'ll text you 3 easy questions per coffee. Just… don\'t get any wrong. 🙂');
   await waitContinue(S.mobile ? 'Let\'s go! ▶' : 'Let\'s go! ▶ (Enter)');
   closePhone();
   tip('start', 'Follow the red arrow to your first coffee! (Click the screen first so the mouse can look around.)', 'Follow the red arrow to your first coffee!');
@@ -1001,8 +1121,8 @@ async function questionSet(n) {
       SFX.glitch();
       await cornSays(`Q${q + 1}: ${escapeHTML(text)}`, 'glitch');
     } else {
-      if (!S.qpool.length) S.qpool = shuffle(QUESTIONS.slice());
-      const Q = S.qpool.pop();
+      if (!S.qpool.length) S.qpool = shuffle(QUESTIONS.filter(q => q !== EX_Q));
+      const Q = n === 3 && q === 1 ? EX_Q : S.qpool.pop();
       opts = shuffle(Q.a.slice()); correct = opts.indexOf(Q.a[0]); text = Q.q;
       await cornSays(`Q${q + 1}: ${escapeHTML(text)}`);
     }
@@ -1037,8 +1157,11 @@ function setMood() {
   $('faceWrap').classList.toggle('mad', S.anger > 0);
   $('faceTxt').textContent = S.anger === 0 ? 'Cornelius 🙂' : `Anger: ${'🌽'.repeat(Math.min(S.anger, 8))}`;
 }
-function stepInterval() { return 1.75 / (1 + .22 * (S.anger - 1)); }
-function stepLen() { return 2.5 + .1 * (S.anger - 1); }
+// harder: faster from the start, scales up more per wrong answer, and slowly
+// heats up the longer the chase goes on (S.heat)
+const rage = () => S.anger + S.heat;
+function stepInterval() { return Math.max(.3, 1.45 / (1 + .27 * (rage() - 1))); }
+function stepLen() { return 2.7 + .12 * (rage() - 1); }
 function updateCorn(dt) {
   const frameKey = S.chasing ? ((corn.anim | 0) % 2 ? 'reach2' : 'reach1') : ((corn.anim | 0) % 2 ? 'wave2' : 'wave1');
   const moodK = S.chasing ? (S.anger >= 4 ? 2 : 1) : 0;
@@ -1066,7 +1189,18 @@ function updateCorn(dt) {
     if (corn.zi === S.zi && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 6 && corn.greet <= 0) { toast(pick(['Cornelius: Howdy, Husker! 🌽', 'Cornelius: Go get those coffees! ☕', 'Cornelius: I believe in you! 😊'])); corn.greet = 12; }
     return;
   }
+  {
+    const d = corn.zi === S.zi ? Math.hypot(corn.X - S.px, corn.Z - S.pz) : 999;
+    const k = clamp(1 - d / 30, 0, 1);
+    S.crackle = (S.crackle || 0) - dt;
+    if (k > 0 && S.crackle <= 0) { SFX.kernel(.08 + k * .4); S.crackle = (1.6 - k * 1.1) * (.6 + rnd() * .8); }
+  }
   if (corn.stun > 0) { corn.stun -= dt; return; }
+  S.heat = Math.min(4, S.heat + dt / 90);
+  // no spawn camping: right after you come through a door (or close the phone)
+  // he can't catch you, and won't step closer if he's already near
+  const near = corn.zi === S.zi && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 18;
+  if (S.grace > 0 && near) return;
   corn.timer -= dt;
   if (corn.timer <= 0) {
     corn.timer = stepInterval(); corn.budget = stepLen(); corn.squash = 1; corn.anim++;
@@ -1084,12 +1218,16 @@ function updateCorn(dt) {
       break;
     }
     const n = corn.path[0], [zi, x, z] = nodeXY(n);
-    if (zi !== corn.zi) { corn.zi = zi; corn.X = wx(zi, x); corn.Z = wz(zi, z); corn.path.shift(); continue; }
+    if (zi !== corn.zi) {
+      corn.zi = zi; corn.X = wx(zi, x); corn.Z = wz(zi, z); corn.path.shift();
+      if (zi === S.zi) toast(`⚠️ Cornelius just came into ${zones[zi].name}! Keep moving!`);
+      continue;
+    }
     const tx = wx(zi, x), tz = wz(zi, z), dx = tx - corn.X, dz = tz - corn.Z, d = Math.hypot(dx, dz);
     if (d <= move) { corn.X = tx; corn.Z = tz; move -= d; corn.budget -= d; corn.path.shift(); }
     else { corn.X += dx / d * move; corn.Z += dz / d * move; corn.budget -= move; move = 0; }
   }
-  if (corn.zi === S.zi && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 2.3) caught();
+  if (corn.zi === S.zi && S.grace <= 0 && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 2.3) caught();
 }
 
 /* =========================================================
@@ -1119,8 +1257,8 @@ function updatePlayer(dt) {
   const moving = Math.hypot(f, s) > .08;
   let speed = WALK;
   if (S.scooter > 0) { S.scooter -= dt; speed = SCOOT; }
-  else if ((keys.ShiftLeft || keys.ShiftRight || TOUCH.run) && moving && S.stamina > 0) { speed = RUN; S.stamina = Math.max(0, S.stamina - 24 * dt); }
-  else S.stamina = Math.min(100, S.stamina + (moving ? 10 : 18) * dt);
+  else if ((keys.ShiftLeft || keys.ShiftRight || TOUCH.run) && moving && S.stamina > 0) { speed = RUN; S.stamina = Math.max(0, S.stamina - 28 * dt); }
+  else S.stamina = Math.min(100, S.stamina + (moving ? 8 : 15) * dt);
   if (moving) {
     const len = Math.max(1, Math.hypot(f, s)), fx = -Math.sin(S.yaw), fz = -Math.cos(S.yaw), rx = Math.cos(S.yaw), rz = -Math.sin(S.yaw);
     const vx = (fx * f + rx * s) / len * speed * dt, vz = (fz * f + rz * s) / len * speed * dt;
@@ -1128,16 +1266,17 @@ function updatePlayer(dt) {
     if (!blocked(S.zi, S.px, S.pz + vz)) S.pz += vz;
   }
   // doors
-  S.doorCD -= dt;
+  S.doorCD -= dt; S.grace -= dt;
   const [cx, cz] = toCell(S.zi, S.px, S.pz), n = nodeOf(S.zi, cx, cz), ti = teleInfo.get(n);
   if (ti && S.doorCD <= 0) {
-    S.doorCD = .6; SFX.door();
+    S.doorCD = .6; SFX.door(); S.grace = 3;
     $('fade').style.opacity = 1; setTimeout(() => { $('fade').style.opacity = 0; }, 140);
     S.zi = ti.zi; S.px = wx(ti.zi, ti.x); S.pz = wz(ti.zi, ti.z); S.yaw = ti.yaw;
     const zn = zones[S.zi];
     scene.fog.color.copy(zn.outdoor ? SKY : INDOOR); scene.background = zn.outdoor || !zn.ceiling ? SKY : INDOOR;
     scene.fog.near = zn.outdoor ? 40 : 20; scene.fog.far = zn.outdoor ? 150 : 75;
     $('where').textContent = zn.name;
+    if (S.chasing && corn.zi === S.zi && Math.hypot(corn.X - S.px, corn.Z - S.pz) < 14) backOff();
     if (ti.enter) { banner(zn.name); if (zn.b.coffee) tip('inside', 'You\'re inside! Follow the arrow to find the coffee, then come back out the EXIT door.'); }
   }
   camera.position.set(S.px, EYE + (moving ? Math.sin(S.time * (speed > WALK ? 14 : 10)) * .06 : 0), S.pz);
@@ -1145,6 +1284,17 @@ function updatePlayer(dt) {
   const near = S.chasing && corn.zi === S.zi ? clamp(1 - Math.hypot(corn.X - S.px, corn.Z - S.pz) / 32, 0, 1) : 0;
   $('danger').style.opacity = (near * .85).toFixed(2);
   camera.rotation.y = S.yaw; camera.rotation.x = S.pitch;
+}
+// no door camping: if he's waiting right where you come out, he backs off to 14–22m away
+function backOff() {
+  const zn = zones[S.zi]; let best = null, bd = 1e9;
+  for (let z = 0; z < zn.h; z++) for (let x = 0; x < zn.w; x++) {
+    if (!isWalk(S.zi, x, z) || tele[nodeOf(S.zi, x, z)] >= 0) continue;
+    const X = wx(S.zi, x), Z = wz(S.zi, z), dp = Math.hypot(X - S.px, Z - S.pz);
+    if (dp < 14 || dp > 22) continue;
+    const dc = Math.hypot(X - corn.X, Z - corn.Z); if (dc < bd) { bd = dc; best = [X, Z]; }
+  }
+  if (best) { corn.X = best[0]; corn.Z = best[1]; corn.path = []; corn.budget = 0; }
 }
 function pickups() {
   for (const c of coffees) {
@@ -1203,7 +1353,7 @@ function updateProjectiles(dt) {
     if (!done && blocked(p.zi, p.X, p.Z)) { done = true; SFX.splat(); }
     if (!done && corn.zi === p.zi && Math.hypot(corn.X - p.X, corn.Z - p.Z) < 2.2) {
       done = true; SFX.splat();
-      if (S.chasing) { corn.stun = 6; SFX.slip(); toast('Cornelius slipped on the butter! 🧈'); }
+      if (S.chasing) { corn.stun = 4.5; SFX.slip(); toast('Cornelius slipped on the butter! 🧈'); }
       else toast('Cornelius: Hey! Butter is for AFTER I\'m grilled! 😅');
     }
     if (done) { scene.remove(p.sprite); projectiles.splice(i, 1); }
@@ -1360,11 +1510,15 @@ async function startGame() {
   if (S.mobile) { try { const p = document.documentElement.requestFullscreen?.(); if (p) p.then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch (e) {} }
   scene.fog.color.copy(SKY); scene.background = SKY; scene.fog.near = 40; scene.fog.far = 150; $('where').textContent = zones[0].name;
   updatePlayer(0);
+  S.mode = 'brief'; $('newsWin').classList.remove('hidden'); $('newsGo').focus(); initAudio();
+  await new Promise(r => { briefResolve = r; });
+  $('newsWin').classList.add('hidden');
   await introText();
 }
 function toTitle() {
   S.mode = 'title'; if (document.pointerLockElement) document.exitPointerLock();
-  for (const id of ['hud', 'overWin', 'winWin', 'pauseWin', 'phone', 'mapWin']) $(id).classList.add('hidden');
+  for (const id of ['hud', 'overWin', 'winWin', 'pauseWin', 'phone', 'mapWin', 'newsWin']) $(id).classList.add('hidden');
+  briefResolve = null;
   $('title').classList.remove('hidden'); showBest(); document.body.classList.remove('ingame');
 }
 
@@ -1374,6 +1528,7 @@ function setControls(mobile) {
   S.mobile = mobile;
   document.body.classList.toggle('mobile', mobile);
   for (const b of document.querySelectorAll('.ctrlToggle')) b.textContent = mobile ? 'Controls: 📱 Mobile (tap to switch)' : 'Controls: 🖱️ Desktop (tap to switch)';
+  $('howDesk').classList.toggle('hidden', mobile); $('howMob').classList.toggle('hidden', !mobile);
   $('helpDesk').classList.toggle('hidden', mobile); $('helpMob').classList.toggle('hidden', !mobile);
   for (const el of document.querySelectorAll('.desk-only')) el.classList.toggle('hidden', mobile);
   try { localStorage.setItem('cornelius-controls', mobile ? 'mobile' : 'desktop'); } catch (e) {}
@@ -1429,6 +1584,11 @@ let saved = null; try { saved = localStorage.getItem('cornelius-controls'); } ca
 const coarse = matchMedia('(pointer: coarse)').matches;
 setControls(saved ? saved === 'mobile' : coarse);
 if (coarse && !saved) $('touchNote').classList.remove('hidden');
+function leaveFront() { if (S.mode !== 'front') return; $('front').classList.add('hidden'); S.mode = 'title'; $('startBtn').focus(); }
+$('frontGo').onclick = leaveFront;
+let briefResolve = null;
+function briefDone() { if (!briefResolve) return; const r = briefResolve; briefResolve = null; r(); }
+$('newsGo').onclick = briefDone;
 $('startBtn').onclick = startGame;
 $('retryBtn').onclick = startGame; $('againBtn').onclick = startGame;
 $('overTitleBtn').onclick = toTitle; $('winTitleBtn').onclick = toTitle; $('quitBtn').onclick = toTitle;
@@ -1451,7 +1611,9 @@ addEventListener('keydown', e => {
     if (contResolve && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); doContinue(); }
     return;
   }
+  if (S.mode === 'front') { if (e.code === 'Enter') { e.preventDefault(); leaveFront(); } return; }
   if (S.mode === 'title' && e.code === 'Enter') { startGame(); return; }
+  if (S.mode === 'brief') { if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); briefDone(); } return; }
   if (S.mode === 'paused' && (e.code === 'KeyP' || e.code === 'Escape')) { $('resumeBtn').click(); return; }
   if (S.mode !== 'play') return;
   if (e.code === 'KeyP' || e.code === 'Escape') { pauseGame(); return; }
@@ -1479,6 +1641,7 @@ for (const pose of ['wave1', 'wave2', 'reach1', 'reach2']) for (const m of [0, 1
 cornSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: cornTex.wave10, transparent: true, alphaTest: .1 }));
 cornSprite.center.set(.5, 0); scene.add(cornSprite);
 makeBeacon();
+S.mode = 'front';
 drawCorn($('titleCorn').getContext('2d'), 0, 'wave1');
 let tw = 0; setInterval(() => { if (S.mode === 'title') drawCorn($('titleCorn').getContext('2d'), 0, (tw++ % 2) ? 'wave2' : 'wave1'); }, 450);
 showBest();
